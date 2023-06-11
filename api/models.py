@@ -1,0 +1,176 @@
+from django.db import models
+from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
+from django.contrib.auth import get_user_model
+from django.urls import reverse
+from django.utils.translation import gettext as _
+
+phone_validator = RegexValidator(
+    ' ^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$ ', _('phone must be in format'))
+min_rate = MinValueValidator(1, 'at least 1')
+max_rate = MaxValueValidator(5, 'max 5')
+
+
+class Restaurant(models.Model):
+
+    name = models.CharField(_("name"), max_length=70)
+    description = models.TextField(_("description"))
+    address = models.CharField(_("address"), max_length=150)
+    phone = models.CharField(_("phone"), max_length=20,
+                             validators=[phone_validator])
+    image = models.ImageField(
+        _("image"), upload_to='restaurants', null=True, blank=True)
+    user = models.ForeignKey(
+        get_user_model(), verbose_name=_("user"), on_delete=models.CASCADE)
+    time = models.IntegerField(_("time"))
+
+    class Meta:
+        verbose_name = _("restaurant")
+        verbose_name_plural = _("restaurants")
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse("restaurant_detail", kwargs={"pk": self.pk})
+
+
+class RestaurantRate(models.Model):
+
+    user = models.ForeignKey(get_user_model(), verbose_name=_(
+        "user"), on_delete=models.CASCADE)
+    restaurant = models.ForeignKey("api.Restaurant", verbose_name=_(
+        "restaurant"), on_delete=models.CASCADE)
+    rate = models.IntegerField(_("rate"), validators=[min_rate, max_rate])
+
+    class Meta:
+        verbose_name = _("restaurant rate")
+        verbose_name_plural = _("restaurant rates")
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse("restaurant_rate_detail", kwargs={"pk": self.pk})
+
+
+class Distributor(models.Model):
+
+    user = models.ForeignKey(get_user_model(), verbose_name=_(
+        "user"), on_delete=models.CASCADE)
+    vehicle_image = models.ImageField(
+        _("vehicle image"), upload_to='distributors/vehicles', null=True, blank=True)
+    vehicle_id = models.CharField(_("vehicle registration id"), max_length=7)
+    vehicle_type = models.CharField(_("vehicle type"), max_length=20)
+
+    class Meta:
+        verbose_name = _("distributor")
+        verbose_name_plural = _("distributors")
+
+    def __str__(self):
+        return self.user.first_name or self.user.email
+
+    def get_absolute_url(self):
+        return reverse("distributor_detail", kwargs={"pk": self.pk})
+
+
+class Category(models.Model):
+
+    name = models.CharField(_("name"), max_length=20)
+
+    class Meta:
+        verbose_name = _("category")
+        verbose_name_plural = _("categories")
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse("category_detail", kwargs={"pk": self.pk})
+
+
+class Product(models.Model):
+
+    name = models.CharField(_("name"), max_length=50)
+    description = models.TextField(_("description"))
+    price = models.DecimalField(_("price"), max_digits=6, decimal_places=2)
+    time = models.IntegerField(_("time of preparation"))
+    image = models.ImageField(
+        _("image"), upload_to='products/', null=True, blank=True)
+    category = models.ForeignKey("api.Category", verbose_name=_(
+        "category"), on_delete=models.PROTECT)
+    restaurant = models.ForeignKey("api.Restaurant", verbose_name=_(
+        "restaurant"), on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = _("product")
+        verbose_name_plural = _("products")
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse("product_detail", kwargs={"pk": self.pk})
+
+
+class ProductRate(models.Model):
+
+    user = models.ForeignKey(get_user_model(), verbose_name=_(
+        "user"), on_delete=models.CASCADE)
+    product = models.ForeignKey("api.Product", verbose_name=_(
+        "product"), on_delete=models.CASCADE)
+    rate = models.IntegerField(_("rate"), validators=[min_rate, max_rate])
+
+    class Meta:
+        verbose_name = _("product rate")
+        verbose_name_plural = _("product rates")
+
+    def __str__(self):
+        return f'{self.user} -> {self.product}'
+
+    def get_absolute_url(self):
+        return reverse("product_rate_detail", kwargs={"pk": self.pk})
+
+
+class Order(models.Model):
+
+    user = models.ForeignKey(get_user_model(), verbose_name=_(
+        "user"), on_delete=models.CASCADE)
+    products = models.ManyToManyField(
+        "api.Product", verbose_name=_("product"), through='OrderDetail')
+    date = models.DateField(_("date"), auto_now=True)
+    time = models.TimeField(_("time"), auto_now=True)
+    address = models.CharField(_("address"), max_length=200)
+    status = models.CharField(_("status"), max_length=15)
+
+    @property
+    def total_price(self):
+        return sum([product.price for product in self.products.all()])
+
+    class Meta:
+        verbose_name = _("order")
+        verbose_name_plural = _("orders")
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse("order_detail", kwargs={"pk": self.pk})
+
+
+class OrderDetail(models.Model):
+
+    order = models.ForeignKey("api.Order", verbose_name=_(
+        "order"), on_delete=models.CASCADE)
+    product = models.ForeignKey("api.Product", verbose_name=_(
+        "product"), on_delete=models.CASCADE)
+    amount = models.IntegerField(_("amount"), validators=[min_rate])
+
+    class Meta:
+        verbose_name = _("order detail")
+        verbose_name_plural = _("order details")
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse("orderdetail_detail", kwargs={"pk": self.pk})
