@@ -7,8 +7,8 @@ from django.utils.translation import gettext as _
 
 phone_validator = RegexValidator(
     ' ^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$ ', _('phone must be in format'))
-min_rate = MinValueValidator(1, 'at least 1')
-max_rate = MaxValueValidator(5, 'max 5')
+min_rating = MinValueValidator(1, 'at least 1')
+max_rating = MaxValueValidator(5, 'max 5')
 
 
 class Restaurant(models.Model):
@@ -49,7 +49,8 @@ class RestaurantRating(models.Model):
         "user"), on_delete=models.CASCADE)
     restaurant = models.ForeignKey("api.Restaurant", verbose_name=_(
         "restaurant"), on_delete=models.CASCADE)
-    rate = models.IntegerField(_("rate"), validators=[min_rate, max_rate])
+    rating = models.IntegerField(_("rating"), validators=[
+                                 min_rating, max_rating])
 
     class Meta:
         verbose_name = _("restaurant rating")
@@ -127,7 +128,8 @@ class ProductRating(models.Model):
         "user"), on_delete=models.CASCADE)
     product = models.ForeignKey("api.Product", verbose_name=_(
         "product"), on_delete=models.CASCADE)
-    rate = models.IntegerField(_("rate"), validators=[min_rate, max_rate])
+    rating = models.IntegerField(_("rating"), validators=[
+                                 min_rating, max_rating])
 
     class Meta:
         verbose_name = _("product rating")
@@ -172,7 +174,7 @@ class OrderDetail(models.Model):
         "order"), on_delete=models.CASCADE)
     product = models.ForeignKey("api.Product", verbose_name=_(
         "product"), on_delete=models.CASCADE)
-    amount = models.IntegerField(_("amount"), validators=[min_rate])
+    amount = models.IntegerField(_("amount"), validators=[min_rating])
 
     class Meta:
         verbose_name = _("order detail")
