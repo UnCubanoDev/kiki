@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Avg
 from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -23,6 +24,14 @@ class Restaurant(models.Model):
         get_user_model(), verbose_name=_("user"), on_delete=models.CASCADE)
     time = models.IntegerField(_("time"))
 
+    @property
+    def rating(self):
+        return self.restaurantrating_set.aggregate(Avg('rate'))['price__avg']
+
+    def rate(self, user, rating):
+        RestaurantRating.objects.update_or_create(
+            user=user, rate=rating, restaurant=self)
+
     class Meta:
         verbose_name = _("restaurant")
         verbose_name_plural = _("restaurants")
@@ -34,7 +43,7 @@ class Restaurant(models.Model):
         return reverse("restaurant_detail", kwargs={"pk": self.pk})
 
 
-class RestaurantRate(models.Model):
+class RestaurantRating(models.Model):
 
     user = models.ForeignKey(get_user_model(), verbose_name=_(
         "user"), on_delete=models.CASCADE)
@@ -43,14 +52,14 @@ class RestaurantRate(models.Model):
     rate = models.IntegerField(_("rate"), validators=[min_rate, max_rate])
 
     class Meta:
-        verbose_name = _("restaurant rate")
-        verbose_name_plural = _("restaurant rates")
+        verbose_name = _("restaurant rating")
+        verbose_name_plural = _("restaurant ratings")
 
     def __str__(self):
-        return self.name
+        return f'{self.user} -> {self.restaurant}'
 
     def get_absolute_url(self):
-        return reverse("restaurant_rate_detail", kwargs={"pk": self.pk})
+        return reverse("restaurant_rating_detail", kwargs={"pk": self.pk})
 
 
 class Distributor(models.Model):
@@ -112,7 +121,7 @@ class Product(models.Model):
         return reverse("product_detail", kwargs={"pk": self.pk})
 
 
-class ProductRate(models.Model):
+class ProductRating(models.Model):
 
     user = models.ForeignKey(get_user_model(), verbose_name=_(
         "user"), on_delete=models.CASCADE)
@@ -121,14 +130,14 @@ class ProductRate(models.Model):
     rate = models.IntegerField(_("rate"), validators=[min_rate, max_rate])
 
     class Meta:
-        verbose_name = _("product rate")
-        verbose_name_plural = _("product rates")
+        verbose_name = _("product rating")
+        verbose_name_plural = _("product ratings")
 
     def __str__(self):
         return f'{self.user} -> {self.product}'
 
     def get_absolute_url(self):
-        return reverse("product_rate_detail", kwargs={"pk": self.pk})
+        return reverse("product_rating_detail", kwargs={"pk": self.pk})
 
 
 class Order(models.Model):
