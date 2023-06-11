@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'api',
     'corsheaders',
     'django_rest_passwordreset',
+    'django_cleanup.apps.CleanupConfig',
 ]
 
 
