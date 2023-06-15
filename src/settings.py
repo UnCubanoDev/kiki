@@ -8,10 +8,12 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 """
 
 import dj_database_url
+from dotenv import load_dotenv
 import os
 from django.test.runner import DiscoverRunner
 from pathlib import Path
 
+load_dotenv()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = Path(__file__).resolve().parent.parent
