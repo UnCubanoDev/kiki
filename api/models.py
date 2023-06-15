@@ -3,7 +3,7 @@ from django.db.models import Avg
 from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 from django.contrib.auth import get_user_model
 from django.urls import reverse
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 phone_validator = RegexValidator(
     ' ^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$ ', _('phone must be in format'))
@@ -16,17 +16,20 @@ class Restaurant(models.Model):
     name = models.CharField(_("name"), max_length=70)
     description = models.TextField(_("description"))
     address = models.CharField(_("address"), max_length=150)
-    phone = models.CharField(_("phone"), max_length=20,
-                             validators=[phone_validator])
+    phone = models.CharField(_("phone"), max_length=20,)
     image = models.ImageField(
         _("image"), upload_to='restaurants', null=True, blank=True)
     user = models.ForeignKey(
         get_user_model(), verbose_name=_("user"), on_delete=models.CASCADE)
-    time = models.IntegerField(_("time"))
+    time = models.CharField(_("time"), max_length=10)
 
     @property
     def rating(self):
-        return self.restaurantrating_set.aggregate(Avg('rate'))['price__avg']
+        return self.restaurantrating_set.aggregate(Avg('rating'))['price__avg']
+
+    @property
+    def products(self):
+        return self.product_set.all()
 
     def rate(self, user, rating):
         RestaurantRating.objects.update_or_create(
@@ -103,7 +106,7 @@ class Product(models.Model):
     name = models.CharField(_("name"), max_length=50)
     description = models.TextField(_("description"))
     price = models.DecimalField(_("price"), max_digits=6, decimal_places=2)
-    time = models.IntegerField(_("time of preparation"))
+    time = models.CharField(_("time of preparation"), max_length=10)
     image = models.ImageField(
         _("image"), upload_to='products/', null=True, blank=True)
     category = models.ForeignKey("api.Category", verbose_name=_(
@@ -162,7 +165,7 @@ class Order(models.Model):
         verbose_name_plural = _("orders")
 
     def __str__(self):
-        return self.name
+        return self.user.get_username()
 
     def get_absolute_url(self):
         return reverse("order_detail", kwargs={"pk": self.pk})
@@ -181,7 +184,7 @@ class OrderDetail(models.Model):
         verbose_name_plural = _("order details")
 
     def __str__(self):
-        return self.name
+        return self.product.name
 
     def get_absolute_url(self):
         return reverse("orderdetail_detail", kwargs={"pk": self.pk})

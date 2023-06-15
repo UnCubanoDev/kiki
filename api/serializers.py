@@ -5,25 +5,6 @@ from directorio.models import User
 from directorio.serializers import UserModelSerializer
 
 
-class RestaurantSerializer(serializers.ModelSerializer):
-
-    user = UserModelSerializer()
-
-    class Meta:
-        model = Restaurant
-        fields = [
-            'id',
-            'name',
-            'description',
-            'address',
-            'phone',
-            'image',
-            'user',
-            'time',
-            'rating'
-        ]
-
-
 class RestaurantRatingSerializer(serializers.ModelSerializer):
     class Meta:
         model = RestaurantRating
@@ -49,9 +30,41 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(
+        slug_field='name', queryset=Category.objects.all())
+
     class Meta:
         model = Product
-        fields = '__all__'
+        fields = [
+            'id',
+            'name',
+            'description',
+            'price',
+            'time',
+            'image',
+            'category',
+        ]
+
+
+class RestaurantSerializer(serializers.ModelSerializer):
+
+    user = UserModelSerializer()
+    products = ProductSerializer(many=True)
+
+    class Meta:
+        model = Restaurant
+        fields = [
+            'id',
+            'name',
+            'description',
+            'address',
+            'phone',
+            'image',
+            'user',
+            'time',
+            'rating',
+            'products',
+        ]
 
 
 class ProductRatingSerializer(serializers.ModelSerializer):
