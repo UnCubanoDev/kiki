@@ -2,13 +2,12 @@ version: "3.2"
 
 services:
   db:
-    image: postgres:14.3
+    image: postgres:14.3-alpine
     container_name: rdlv-db
-    restart: always
     environment:
-      - POSTGRES_PASSWORD=${POSTGRESQL_PASS}
-      - POSTGRES_DB=${POSTGRESQL_NAME}
+      - POSTGRES_PASSWORD=${SQL_PASSWORD}
+      - POSTGRES_DB=${SQL_DATABASE}
     ports:
-      - '${POSTGRESQL_PORT}:5432'
+      - '${SQL_PORT}:5432'
     volumes:
       - ./db:/data/postgres
