@@ -22,6 +22,8 @@ class Restaurant(models.Model):
     user = models.ForeignKey(
         get_user_model(), verbose_name=_("user"), on_delete=models.CASCADE)
     time = models.CharField(_("time"), max_length=10)
+    categories_product = models.ManyToManyField(
+        "api.Category", verbose_name=_("Products Categories"))
 
     @property
     def rating(self):

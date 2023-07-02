@@ -50,6 +50,11 @@ class RestaurantSerializer(serializers.ModelSerializer):
 
     user = UserModelSerializer()
     products = ProductSerializer(many=True)
+    categories_product = serializers.SlugRelatedField(
+        slug_field='name', queryset=Category.objects.all(), many=True)
+
+    def save(self, **kwargs):
+        return super().save(**kwargs)
 
     class Meta:
         model = Restaurant
@@ -64,6 +69,7 @@ class RestaurantSerializer(serializers.ModelSerializer):
             'time',
             'rating',
             'products',
+            'categories_product',
         ]
 
 
