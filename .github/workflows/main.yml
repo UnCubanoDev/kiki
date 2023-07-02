@@ -8,11 +8,11 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout del repositorio
         uses: actions/checkout@v2
-        
+
       - name: Conectar al VPS y actualizar
         uses: appleboy/ssh-action@master
         with:
@@ -25,4 +25,5 @@ jobs:
             source venv/bin/activate
             pip install -r requirements.txt
             python manage.py migrate
+            sudo service gunicorn restart
             sudo service nginx restart
