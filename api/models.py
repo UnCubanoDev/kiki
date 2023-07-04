@@ -24,6 +24,7 @@ class Restaurant(models.Model):
     time = models.CharField(_("time"), max_length=10)
     categories_product = models.ManyToManyField(
         "api.Category", verbose_name=_("Products Categories"))
+    is_active = models.BooleanField(_("is active"), default=True)
 
     @property
     def rating(self):
@@ -115,6 +116,7 @@ class Product(models.Model):
         "category"), on_delete=models.PROTECT)
     restaurant = models.ForeignKey("api.Restaurant", verbose_name=_(
         "restaurant"), on_delete=models.CASCADE)
+    um = models.CharField(_("unit of measurement"), max_length=10)
 
     class Meta:
         verbose_name = _("product")
