@@ -16,15 +16,20 @@ jobs:
       - name: Conectar al VPS y actualizar
         uses: appleboy/ssh-action@master
         with:
-          host: 207.244.233.96
+          host: 206.189.238.9
           username: ${{ secrets.VPS_USERNAME }}
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
-            cd rdlv
-            git pull
+            cd /var/www/html/tuboliteros/
             source venv/bin/activate
+            git pull
+
             pip install -r requirements.txt
-            docker compose up -d
+
             python manage.py migrate
-            sudo service gunicorn restart
-            sudo service nginx restart
+
+            python manage.py collectstatic
+            cp -r ./static/tmp/* ./static/
+            rm -R ./static/tmp/
+
+            sudo service apache2 restart
