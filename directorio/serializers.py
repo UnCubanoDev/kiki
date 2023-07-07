@@ -15,12 +15,9 @@ class UserModelSerializer(serializers.ModelSerializer):
         exclude = (
             'password',
             'last_login',
-            'is_superuser',
-            'is_staff',
-            'is_active',
             'date_joined',
             'groups',
-            'user_permissions'
+            'user_permissions',
         )
 
 
@@ -38,7 +35,8 @@ class UserSignupSerializer(serializers.ModelSerializer):
             'last_name',
             'email',
             'phone',
-            'username'
+            'username',
+            'image',
         )
 
     def validate(self, data):

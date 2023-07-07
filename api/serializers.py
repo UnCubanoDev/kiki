@@ -90,7 +90,20 @@ class OrderSerializer(serializers.ModelSerializer):
             'time',
             'address',
             'status',
+            'total_price',
         ]
+        read_only_fields = [
+            'id',
+            'date',
+            'time',
+        ]
+
+    def create(self, validated_data):
+        products_data = validated_data.pop('products')
+        order = Order.objects.create(**validated_data)
+        for product in products_data:
+            OrderDetail.objects.create(order=order, **product)
+        return order
 
 
 class OrderDetailSerializer(serializers.ModelSerializer):
