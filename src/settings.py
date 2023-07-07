@@ -7,10 +7,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/topics/settings/
 """
 
-import dj_database_url
 from dotenv import load_dotenv
 import os
-from django.test.runner import DiscoverRunner
 from pathlib import Path
 
 load_dotenv()
