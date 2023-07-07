@@ -6,6 +6,8 @@ from .models import (Restaurant, Category, Distributor,
 
 @admin.register(Restaurant)
 class RestaurantAdmin(admin.ModelAdmin):
+    list_display = ['name', 'address', 'phone',
+                    'user', 'tax', 'is_active', 'rating']
     pass
 
 
@@ -16,6 +18,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Distributor)
 class DistributorAdmin(admin.ModelAdmin):
+    list_display = ['user', 'vehicle_id', 'vehicle_type']
     pass
 
 
@@ -31,6 +34,14 @@ class ProductRatingAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
+    list_display = [
+        'name',
+        'restaurant',
+        'price',
+        'um',
+        'category',
+        'rating',
+    ]
     pass
 
 
@@ -41,4 +52,10 @@ class RestaurantRatingAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
+    list_display = [
+        'user',
+        'date',
+        'time',
+        'status',
+    ]
     pass

@@ -29,7 +29,7 @@ class Restaurant(models.Model):
 
     @property
     def rating(self):
-        return self.restaurantrating_set.aggregate(Avg('rating'))['price__avg']
+        return self.restaurantrating_set.aggregate(Avg('rating'))['rating__avg'] or 0
 
     @property
     def products(self):
@@ -122,6 +122,10 @@ class Product(models.Model):
     class Meta:
         verbose_name = _("product")
         verbose_name_plural = _("products")
+
+    @property
+    def rating(self):
+        return self.productrating_set.aggregate(Avg('rating'))['rating__avg'] or 0
 
     def __str__(self):
         return self.name
