@@ -79,6 +79,10 @@ class Distributor(models.Model):
     vehicle_id = models.CharField(_("vehicle registration id"), max_length=7)
     vehicle_type = models.CharField(_("vehicle type"), max_length=20)
 
+    @property
+    def rating(self):
+        return self.distributorrating_set.aggregate(Avg('rating'))['rating__avg'] or 0
+
     class Meta:
         verbose_name = _("distributor")
         verbose_name_plural = _("distributors")
@@ -88,6 +92,26 @@ class Distributor(models.Model):
 
     def get_absolute_url(self):
         return reverse("distributor_detail", kwargs={"pk": self.pk})
+
+
+class DistributorRating(models.Model):
+
+    user = models.ForeignKey(get_user_model(), verbose_name=_(
+        "user"), on_delete=models.CASCADE)
+    distributor = models.ForeignKey("api.Distributor", verbose_name=_(
+        "distributor"), on_delete=models.CASCADE)
+    rating = models.IntegerField(_("rating"), validators=[
+                                 min_rating, max_rating])
+
+    class Meta:
+        verbose_name = _("Distributor rating")
+        verbose_name_plural = _("Distributor ratings")
+
+    def __str__(self):
+        return f'{self.user} -> {self.distributor}'
+
+    def get_absolute_url(self):
+        return reverse("distributor_rating_detail", kwargs={"pk": self.pk})
 
 
 class Category(models.Model):

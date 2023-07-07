@@ -18,7 +18,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Distributor)
 class DistributorAdmin(admin.ModelAdmin):
-    list_display = ['user', 'vehicle_id', 'vehicle_type']
+    list_display = ['user', 'vehicle_id', 'vehicle_type', 'rating']
     pass
 
 
