@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import (Restaurant, Category, Distributor,
+from .models import (Restaurant, Category, Distributor, DistributorRating,
                      OrderDetail, ProductRating, Product, Order, RestaurantRating)
 
 
@@ -19,6 +19,11 @@ class CategoryAdmin(admin.ModelAdmin):
 @admin.register(Distributor)
 class DistributorAdmin(admin.ModelAdmin):
     list_display = ['user', 'vehicle_id', 'vehicle_type', 'rating']
+    pass
+
+
+@admin.register(DistributorRating)
+class DistributorRatingAdmin(admin.ModelAdmin):
     pass
 
 
