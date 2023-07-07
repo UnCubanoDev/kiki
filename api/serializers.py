@@ -12,6 +12,8 @@ class RestaurantRatingSerializer(serializers.ModelSerializer):
 
 
 class DistributorSerializer(serializers.ModelSerializer):
+    user = UserModelSerializer()
+
     class Meta:
         model = Distributor
         fields = [
@@ -20,6 +22,7 @@ class DistributorSerializer(serializers.ModelSerializer):
             'vehicle_image',
             'vehicle_id',
             'vehicle_type',
+            'user',
         ]
 
 

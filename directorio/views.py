@@ -8,9 +8,12 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 # Serializers
 from directorio.serializers import UserLoginSerializer, UserModelSerializer
+from api.serializers import DistributorSerializer, RestaurantSerializer
+
 
 # Models
 from directorio.models import User
+from api.models import Distributor, Restaurant
 
 
 class UserViewSet(viewsets.GenericViewSet, mixins.UpdateModelMixin, mixins.RetrieveModelMixin):
@@ -68,9 +71,17 @@ class LoginView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         user, token = serializer.save()
         data = {
+            'access_token': token,
             'user': UserModelSerializer(instance=user).data,
-            'access_token': token
         }
+        distributors = Distributor.objects.filter(user=user)
+        restaurants = Restaurant.objects.filter(user=user)
+        if len(distributors) > 0:
+            data['distributor'] = DistributorSerializer(
+                instance=distributors[0]).data
+        if len(restaurants) > 0:
+            data['restaurant'] = RestaurantSerializer(
+                instance=restaurants[0]).data
         return Response(data, status=status.HTTP_201_CREATED)
 
 
