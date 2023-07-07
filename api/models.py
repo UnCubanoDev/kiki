@@ -25,6 +25,7 @@ class Restaurant(models.Model):
     categories_product = models.ManyToManyField(
         "api.Category", verbose_name=_("Products Categories"))
     is_active = models.BooleanField(_("is active"), default=True)
+    tax = models.FloatField(_("tax"), default=10)
 
     @property
     def rating(self):
