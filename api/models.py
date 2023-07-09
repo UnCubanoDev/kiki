@@ -26,6 +26,7 @@ class Restaurant(models.Model):
         "api.Category", verbose_name=_("Products Categories"))
     is_active = models.BooleanField(_("is active"), default=True)
     tax = models.FloatField(_("tax"), default=10)
+    type = models.CharField(_("type"), max_length=50)
 
     @property
     def rating(self):
