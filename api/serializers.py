@@ -73,6 +73,7 @@ class RestaurantSerializer(serializers.ModelSerializer):
             'rating',
             'products',
             'categories_product',
+            'type',
         ]
 
 
