@@ -98,6 +98,8 @@ class RestaurantSerializer(serializers.ModelSerializer):
             'products',
             'categories_product',
             'type',
+            'latitude',
+            'longitude',
         ]
 
 

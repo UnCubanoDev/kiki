@@ -27,6 +27,8 @@ class Restaurant(models.Model):
     is_active = models.BooleanField(_("is active"), default=True)
     tax = models.FloatField(_("tax"), default=10)
     type = models.CharField(_("type"), max_length=50)
+    latitude = models.CharField(_("latitude"), max_length=25, default='')
+    longitude = models.CharField(_("longitude"), max_length=25, default='')
 
     @property
     def rating(self):
