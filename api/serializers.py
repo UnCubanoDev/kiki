@@ -1,13 +1,37 @@
 from rest_framework import serializers
 from .models import (Restaurant, RestaurantRating, Category,
-                     Distributor, Order, Product, ProductRating, OrderDetail)
+                     Distributor, Order, Product, ProductRating, OrderDetail, DistributorRating)
 from directorio.models import User
 from directorio.serializers import UserModelSerializer
 
 
+class DistributorRatingSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(
+        read_only=True
+    )
+
+    class Meta:
+        model = DistributorRating
+        fields = '__all__'
+
+
 class RestaurantRatingSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(
+        read_only=True
+    )
+
     class Meta:
         model = RestaurantRating
+        fields = '__all__'
+
+
+class ProductRatingSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(
+        read_only=True
+    )
+
+    class Meta:
+        model = ProductRating
         fields = '__all__'
 
 
@@ -75,12 +99,6 @@ class RestaurantSerializer(serializers.ModelSerializer):
             'categories_product',
             'type',
         ]
-
-
-class ProductRatingSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProductRating
-        fields = '__all__'
 
 
 class OrderSerializer(serializers.ModelSerializer):

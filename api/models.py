@@ -38,7 +38,7 @@ class Restaurant(models.Model):
 
     def rate(self, user, rating):
         RestaurantRating.objects.update_or_create(
-            user=user, rate=rating, restaurant=self)
+            user=user, restaurant=self, defaults={'rating': int(rating)})
 
     class Meta:
         verbose_name = _("restaurant")
@@ -83,6 +83,10 @@ class Distributor(models.Model):
     @property
     def rating(self):
         return self.distributorrating_set.aggregate(Avg('rating'))['rating__avg'] or 0
+
+    def rate(self, user, rating):
+        DistributorRating.objects.update_or_create(
+            user=user, distributor=self, defaults={'rating': int(rating)})
 
     class Meta:
         verbose_name = _("distributor")
@@ -151,6 +155,10 @@ class Product(models.Model):
     @property
     def rating(self):
         return self.productrating_set.aggregate(Avg('rating'))['rating__avg'] or 0
+
+    def rate(self, user, rating):
+        ProductRating.objects.update_or_create(
+            user=user, product=self, defaults={'rating': int(rating)})
 
     def __str__(self):
         return self.name

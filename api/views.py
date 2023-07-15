@@ -1,17 +1,55 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from .permissions import IsDistributor, IsReadOnly, IsProductOwner
 
-from .models import Restaurant, Order, Category, Distributor, Product
+from .models import Restaurant, Order, Category, Distributor, Product, ProductRating, RestaurantRating, DistributorRating
 from .serializers import (RestaurantSerializer, CategorySerializer,
-                          OrderSerializer, DistributorSerializer, ProductSerializer, OrderDetailSerializer,)
+                          OrderSerializer, DistributorSerializer, ProductSerializer,
+                          OrderDetailSerializer, ProductRatingSerializer, RestaurantRatingSerializer,
+                          DistributorRatingSerializer
+                          )
+
+
+def super_rate(request, instance, serializer, model):
+    user = request.user
+    instance_data = request.data[instance]
+    rating = request.data['rating']
+    data = {
+        'user': user,
+        instance: instance_data,
+        'rating': rating,
+    }
+    serializer_instance = serializer(data=data)
+    if serializer_instance.is_valid():
+        try:
+            model.objects.get(pk=request.data[instance]).rate(
+                user=user, rating=rating)
+            return Response(serializer_instance.data,
+                            status=status.HTTP_201_CREATED)
+        except Exception as e:
+            print(e)
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    else:
+        return Response(serializer_instance.errors,
+                        status=status.HTTP_400_BAD_REQUEST)
 
 
 class RestaurantViewSet(viewsets.ModelViewSet):
     queryset = Restaurant.objects.all()
     serializer_class = RestaurantSerializer
     # permission_classes = [IsAdminUser]
+
+    @action(
+        detail=False,
+        methods=['POST'],
+        permission_classes=[IsAuthenticated],
+        serializer_class=RestaurantRatingSerializer
+    )
+    def rate(self, request):
+        return super_rate(request, 'restaurant', self.get_serializer, Restaurant)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -31,8 +69,26 @@ class DistributorViewSet(viewsets.ModelViewSet):
     serializer_class = DistributorSerializer
     # permission_classes = [IsDistributor | IsReadOnly | IsProductOwner]
 
+    @action(
+        detail=False,
+        methods=['post'],
+        permission_classes=[IsAuthenticated],
+        serializer_class=DistributorRatingSerializer
+    )
+    def rate(self, request):
+        return super_rate(request, 'distributor', self.get_serializer, Distributor)
+
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     # permission_classes = [IsDistributor | IsReadOnly | IsProductOwner]
+
+    @action(
+        detail=False,
+        methods=['post'],
+        permission_classes=[IsAuthenticated],
+        serializer_class=ProductRatingSerializer
+    )
+    def rate(self, request):
+        return super_rate(request, 'product', self.get_serializer, Product)
