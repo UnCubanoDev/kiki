@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from .permissions import IsDistributor, IsReadOnly, IsProductOwner
+from .permissions import IsDistributor, IsReadOnly, IsProductOwner, IsProvider
 
 from .models import Restaurant, Order, Category, Distributor, Product, ProductRating, RestaurantRating, DistributorRating
 from .serializers import (RestaurantSerializer, CategorySerializer,
@@ -82,7 +82,11 @@ class DistributorViewSet(viewsets.ModelViewSet):
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    # permission_classes = [IsDistributor | IsReadOnly | IsProductOwner]
+    permission_classes = [IsProvider | IsReadOnly | IsProductOwner]
+
+    def perform_create(self, serializer):
+        serializer.save(restaurant=Restaurant.objects.get(
+            user=self.request.user))
 
     @action(
         detail=False,

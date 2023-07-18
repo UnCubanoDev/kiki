@@ -13,20 +13,27 @@ class IsProvider(BasePermission):
 
     def has_permission(self, request, view):
         user = request.user
-        return bool(Restaurant.objects.first(user=user))
+        if not user.is_authenticated:
+            return False
+        return bool(Restaurant.objects.filter(user=user).exists())
 
 
 class IsProductOwner(BasePermission):
 
-    def has_permission(self, request, view, obj):
+    def has_permission(self, request, obj):
 
-        if request.method in SAFE_METHODS:
-            return True
+        user = request.user
 
-        restaurant = Restaurant.objects.first(user=request.user)
-
-        if not restaurant:
+        if not user.is_authenticated:
             return False
+
+        restaurant = Restaurant.objects.filter(user=user)
+
+        if not restaurant.exists():
+            return False
+
+        if request.method in [*SAFE_METHODS, 'POST']:
+            return True
 
         return obj.restaurant == restaurant
 
@@ -35,4 +42,6 @@ class IsDistributor(BasePermission):
 
     def has_permission(self, request, view):
         user = request.user
-        return bool(Distributor.objects.first(user=user))
+        if not user.is_authenticated:
+            return False
+        return bool(Distributor.objects.filter(user=user).exists())
