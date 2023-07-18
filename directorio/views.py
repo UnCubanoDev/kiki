@@ -7,7 +7,7 @@ from rest_framework import status, viewsets, generics, mixins
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 # Serializers
-from directorio.serializers import UserLoginSerializer, UserModelSerializer
+from directorio.serializers import UserLoginSerializer, UserModelSerializer, UpdateUserSerializer
 from api.serializers import DistributorSerializer, RestaurantSerializer
 
 
@@ -21,6 +21,11 @@ class UserViewSet(viewsets.GenericViewSet, mixins.UpdateModelMixin, mixins.Retri
     queryset = User.objects.filter(is_active=True)
     serializer_class = UserModelSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return UserModelSerializer
+        return UpdateUserSerializer
 
     def retrieve(self, request, *args, **kwargs):
         serializer = self.get_serializer(request.user)
