@@ -15,7 +15,7 @@ max_rating = MaxValueValidator(5, 'max 5')
 
 class Configuration(SingletonModel):
 
-    exchange_rate = models.FloatField(_("exchange rate"))
+    exchange_rate = models.FloatField(_("exchange rate"), default=0)
 
     class Meta:
         verbose_name = _("configuration")
