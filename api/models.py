@@ -5,10 +5,27 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
+from solo.models import SingletonModel
+
 phone_validator = RegexValidator(
     ' ^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$ ', _('phone must be in format'))
 min_rating = MinValueValidator(1, 'at least 1')
 max_rating = MaxValueValidator(5, 'max 5')
+
+
+class Configuration(SingletonModel):
+
+    exchange_rate = models.FloatField(_("exchange rate"))
+
+    class Meta:
+        verbose_name = _("configuration")
+        verbose_name_plural = _("configurations")
+
+    def __str__(self):
+        return 'Configuration'
+
+    def get_absolute_url(self):
+        return reverse("configuration_detail", kwargs={"pk": self.pk})
 
 
 class Restaurant(models.Model):
@@ -81,6 +98,7 @@ class Distributor(models.Model):
         _("vehicle image"), upload_to='distributors/vehicles', null=True, blank=True)
     vehicle_id = models.CharField(_("vehicle registration id"), max_length=7)
     vehicle_type = models.CharField(_("vehicle type"), max_length=20)
+    is_online = models.BooleanField(_("is online"))
 
     @property
     def rating(self):
@@ -144,11 +162,18 @@ class Product(models.Model):
     time = models.CharField(_("time of preparation"), max_length=10)
     image = models.ImageField(
         _("image"), upload_to='products/', null=True, blank=True)
-    category = models.ForeignKey("api.Category", verbose_name=_(
-        "category"), on_delete=models.PROTECT)
-    restaurant = models.ForeignKey("api.Restaurant", verbose_name=_(
-        "restaurant"), on_delete=models.CASCADE)
+    category = models.ForeignKey(
+        "api.Category",
+        verbose_name=_("category"),
+        on_delete=models.PROTECT
+    )
+    restaurant = models.ForeignKey(
+        "api.Restaurant",
+        verbose_name=_("restaurant"),
+        on_delete=models.CASCADE
+    )
     um = models.CharField(_("unit of measurement"), max_length=10)
+    amount = models.IntegerField(_("amount"))
 
     class Meta:
         verbose_name = _("product")

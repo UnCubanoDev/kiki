@@ -1,7 +1,14 @@
 from django.contrib import admin
 
 from .models import (Restaurant, Category, Distributor, DistributorRating,
-                     OrderDetail, ProductRating, Product, Order, RestaurantRating)
+                     OrderDetail, ProductRating, Product, Order, RestaurantRating, Configuration)
+
+from solo.admin import SingletonModelAdmin
+
+
+@admin.register(Configuration)
+class ConfigurationAdmin(SingletonModelAdmin):
+    pass
 
 
 @admin.register(Restaurant)

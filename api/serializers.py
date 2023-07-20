@@ -73,6 +73,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'image',
             'category',
             'restaurant',
+            'amount',
         ]
 
 

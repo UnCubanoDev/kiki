@@ -63,6 +63,16 @@ class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
     # permission_classes = [IsDistributor | IsReadOnly | IsProductOwner]
 
+    @action(
+        detail=True,
+        methods=['post'],
+        permission_classes=[IsDistributor],
+        serializer_class=DistributorRatingSerializer
+    )
+    def accept(self, request):
+        # TODO
+        pass
+
 
 class DistributorViewSet(viewsets.ModelViewSet):
     queryset = Distributor.objects.all()
