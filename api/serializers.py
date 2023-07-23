@@ -139,6 +139,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'date',
             'time',
             'status'
+            'total_price',
         ]
 
     def create(self, validated_data):

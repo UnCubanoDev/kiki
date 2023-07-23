@@ -226,7 +226,7 @@ class Order(models.Model):
 
     @property
     def total_price(self):
-        return sum([product.price for product in self.products.all()])
+        return sum([order_detail.product.price * order_detail.amount for order_detail in self.products.all()])
 
     @property
     def products(self):
