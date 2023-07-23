@@ -107,7 +107,20 @@ class RestaurantSerializer(serializers.ModelSerializer):
         ]
 
 
+class OrderDetailSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OrderDetail
+        fields = ['product', 'amount']
+
+
 class OrderSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(
+        read_only=True
+    )
+
+    products = OrderDetailSerializer(many=True)
+
     class Meta:
         model = Order
         fields = [
@@ -116,21 +129,24 @@ class OrderSerializer(serializers.ModelSerializer):
             'products',
             'date',
             'time',
-            'address',
             'status',
+            'delivery_address',
+            'pay_type',
             'total_price',
         ]
         read_only_fields = [
             'id',
             'date',
             'time',
+            'status'
         ]
 
     def create(self, validated_data):
         products_data = validated_data.pop('products')
         order = Order.objects.create(**validated_data)
-        for product in products_data:
-            OrderDetail.objects.create(order=order, **product)
+        for order_detail in products_data:
+            OrderDetail.objects.create(
+                order=order, product=order_detail['product'], amount=order_detail['amount'])
         return order
 
 

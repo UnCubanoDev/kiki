@@ -68,6 +68,7 @@ class OrderAdmin(admin.ModelAdmin):
         'user',
         'date',
         'time',
+        'delivery_address',
         'status',
+        'pay_type',
     ]
-    pass

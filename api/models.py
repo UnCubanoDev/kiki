@@ -217,24 +217,27 @@ class ProductRating(models.Model):
 class Order(models.Model):
 
     user = models.ForeignKey(get_user_model(), verbose_name=_(
-        "user"), on_delete=models.CASCADE)
-    products = models.ManyToManyField(
-        "api.Product", verbose_name=_("product"), through='OrderDetail')
+        "user"), on_delete=models.DO_NOTHING)
     date = models.DateField(_("date"), auto_now=True)
     time = models.TimeField(_("time"), auto_now=True)
-    address = models.CharField(_("address"), max_length=200)
+    delivery_address = models.CharField(_("address"), max_length=200)
     status = models.CharField(_("status"), max_length=15)
+    pay_type = models.CharField(_(""), max_length=25)
 
     @property
     def total_price(self):
         return sum([product.price for product in self.products.all()])
+
+    @property
+    def products(self):
+        return self.orderdetail_set.all()
 
     class Meta:
         verbose_name = _("order")
         verbose_name_plural = _("orders")
 
     def __str__(self):
-        return self.user.get_username()
+        return str(self.pk)
 
     def get_absolute_url(self):
         return reverse("order_detail", kwargs={"pk": self.pk})
@@ -245,7 +248,7 @@ class OrderDetail(models.Model):
     order = models.ForeignKey("api.Order", verbose_name=_(
         "order"), on_delete=models.CASCADE)
     product = models.ForeignKey("api.Product", verbose_name=_(
-        "product"), on_delete=models.CASCADE)
+        "product"), on_delete=models.DO_NOTHING)
     amount = models.IntegerField(_("amount"), validators=[min_rating])
 
     class Meta:
@@ -253,7 +256,7 @@ class OrderDetail(models.Model):
         verbose_name_plural = _("order details")
 
     def __str__(self):
-        return self.product.name
+        return f'{self.pk or ""}'
 
     def get_absolute_url(self):
         return reverse("orderdetail_detail", kwargs={"pk": self.pk})

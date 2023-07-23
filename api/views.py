@@ -61,7 +61,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
-    # permission_classes = [IsDistributor | IsReadOnly | IsProductOwner]
+    permission_classes = [IsAuthenticated | IsReadOnly]
 
     @action(
         detail=True,
@@ -72,6 +72,9 @@ class OrderViewSet(viewsets.ModelViewSet):
     def accept(self, request):
         # TODO
         pass
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user, status='pending')
 
 
 class DistributorViewSet(viewsets.ModelViewSet):
