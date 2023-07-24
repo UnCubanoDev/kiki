@@ -229,6 +229,10 @@ class Order(models.Model):
         return sum([order_detail.product.price * order_detail.amount for order_detail in self.products.all()])
 
     @property
+    def bussinness_addresses(self):
+        return [order.product.restaurant.address for order in self.products]
+
+    @property
     def products(self):
         return self.orderdetail_set.all()
 

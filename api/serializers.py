@@ -133,6 +133,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'delivery_address',
             'pay_type',
             'total_price',
+            'bussinness_addressess',
         ]
         read_only_fields = [
             'id',
