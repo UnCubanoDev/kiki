@@ -129,7 +129,6 @@ class OrderSerializer(serializers.ModelSerializer):
             'products',
             'date',
             'time',
-            'status',
             'delivery_address',
             'pay_type',
             'total_price',
