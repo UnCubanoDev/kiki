@@ -38,7 +38,7 @@ def super_rate(request, instance, serializer, model):
 
 
 class RestaurantViewSet(viewsets.ModelViewSet):
-    queryset = Restaurant.objects.all()
+    queryset = Restaurant.objects.filter(is_active=True)
     serializer_class = RestaurantSerializer
     # permission_classes = [IsAdminUser]
 
