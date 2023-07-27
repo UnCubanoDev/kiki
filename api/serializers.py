@@ -114,6 +114,11 @@ class OrderDetailSerializer(serializers.ModelSerializer):
         fields = ['product', 'amount']
 
 
+class LocationSerializer(serializers.Serializer):
+    latitude = serializers.CharField()
+    longitude = serializers.CharField()
+
+
 class OrderSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(
         read_only=True
@@ -121,20 +126,22 @@ class OrderSerializer(serializers.ModelSerializer):
 
     products = OrderDetailSerializer(many=True)
     status = serializers.CharField(read_only=True)
+    business_addresses = LocationSerializer(many=True, read_only=True)
 
     class Meta:
         model = Order
         fields = [
             'id',
             'user',
+            'distributor',
             'products',
             'date',
             'time',
             'delivery_address',
             'pay_type',
             'total_price',
-            'bussinness_addresses',
-            'status'
+            'business_addresses',
+            'status',
         ]
         read_only_fields = [
             'id',

@@ -218,6 +218,8 @@ class Order(models.Model):
 
     user = models.ForeignKey(get_user_model(), verbose_name=_(
         "user"), on_delete=models.DO_NOTHING)
+    distributor = models.ForeignKey("api.Distributor", verbose_name=_(
+        "distributor"), on_delete=models.DO_NOTHING, null=True, blank=True)
     date = models.DateField(_("date"), auto_now=True)
     time = models.TimeField(_("time"), auto_now=True)
     delivery_address = models.CharField(_("address"), max_length=200)
@@ -229,8 +231,13 @@ class Order(models.Model):
         return sum([order_detail.product.price * order_detail.amount for order_detail in self.products.all()])
 
     @property
-    def bussinness_addresses(self):
-        return [order.product.restaurant.address for order in self.products]
+    def business_addresses(self):
+        return [{
+            'latitude': order.product.restaurant.latitude,
+            'longitude': order.product.restaurant.longitude,
+        }
+            for order in self.products
+        ]
 
     @property
     def products(self):
