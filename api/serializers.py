@@ -120,6 +120,7 @@ class OrderSerializer(serializers.ModelSerializer):
     )
 
     products = OrderDetailSerializer(many=True)
+    status = serializers.CharField(read_only=True)
 
     class Meta:
         model = Order
@@ -133,12 +134,12 @@ class OrderSerializer(serializers.ModelSerializer):
             'pay_type',
             'total_price',
             'bussinness_addresses',
+            'status'
         ]
         read_only_fields = [
             'id',
             'date',
             'time',
-            'status'
             'total_price',
         ]
 
