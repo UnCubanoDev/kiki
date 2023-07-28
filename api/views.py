@@ -12,6 +12,10 @@ from .serializers import (RestaurantSerializer, CategorySerializer,
                           DistributorRatingSerializer
                           )
 
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_cookie, vary_on_headers
+
 
 def super_rate(request, instance, serializer, model):
     user = request.user
@@ -42,6 +46,11 @@ class RestaurantViewSet(viewsets.ModelViewSet):
     serializer_class = RestaurantSerializer
     # permission_classes = [IsAdminUser]
 
+    @method_decorator(cache_page(60))
+    @method_decorator(vary_on_cookie)
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
     @action(
         detail=False,
         methods=['POST'],
@@ -57,11 +66,21 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     # permission_classes = [IsDistributor | IsReadOnly | IsProductOwner]
 
+    @method_decorator(cache_page(60))
+    @method_decorator(vary_on_cookie)
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated | IsReadOnly]
+
+    @method_decorator(cache_page(60))
+    @method_decorator(vary_on_cookie)
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
     @action(
         detail=True,
@@ -82,6 +101,11 @@ class DistributorViewSet(viewsets.ModelViewSet):
     serializer_class = DistributorSerializer
     # permission_classes = [IsDistributor | IsReadOnly | IsProductOwner]
 
+    @method_decorator(cache_page(60))
+    @method_decorator(vary_on_cookie)
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
     @action(
         detail=False,
         methods=['post'],
@@ -96,6 +120,11 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [IsProvider | IsReadOnly | IsProductOwner]
+
+    @method_decorator(cache_page(120))
+    @method_decorator(vary_on_cookie)
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         serializer.save(restaurant=Restaurant.objects.get(
