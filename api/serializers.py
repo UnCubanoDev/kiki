@@ -107,6 +107,17 @@ class RestaurantSerializer(serializers.ModelSerializer):
         ]
 
 
+class OrderProductsSerializer(serializers.Serializer):
+    detail = ProductSerializer(read_only=True)
+    amount = serializers.IntegerField()
+
+
+class BusinessOrderSerializer(serializers.Serializer):
+    latitude = serializers.CharField(read_only=True)
+    longitude = serializers.CharField(read_only=True)
+    products = OrderProductsSerializer(many=True)
+
+
 class OrderDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -114,19 +125,14 @@ class OrderDetailSerializer(serializers.ModelSerializer):
         fields = ['product', 'amount']
 
 
-class LocationSerializer(serializers.Serializer):
-    latitude = serializers.CharField()
-    longitude = serializers.CharField()
-
-
 class OrderSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(
         read_only=True
     )
 
-    products = OrderDetailSerializer(many=True)
+    business_orders = BusinessOrderSerializer(many=True, read_only=True)
     status = serializers.CharField(read_only=True)
-    business_addresses = LocationSerializer(many=True, read_only=True)
+    products = OrderDetailSerializer(many=True, write_only=True)
 
     class Meta:
         model = Order
@@ -140,7 +146,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'delivery_address',
             'pay_type',
             'total_price',
-            'business_addresses',
+            'business_orders',
             'status',
         ]
         read_only_fields = [
@@ -148,6 +154,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'date',
             'time',
             'total_price',
+            'distributor',
         ]
 
     def create(self, validated_data):

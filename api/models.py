@@ -231,10 +231,16 @@ class Order(models.Model):
         return sum([order_detail.product.price * order_detail.amount for order_detail in self.products.all()])
 
     @property
-    def business_addresses(self):
+    def business_orders(self):
+        products = [{
+            'detail': detail.product,
+            'amount': detail.amount
+        } for detail in self.orderdetail_set.all()]
+
         return [{
             'latitude': order.product.restaurant.latitude,
             'longitude': order.product.restaurant.longitude,
+            'products': products,
         }
             for order in self.products
         ]
