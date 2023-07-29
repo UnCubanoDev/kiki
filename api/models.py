@@ -12,6 +12,13 @@ phone_validator = RegexValidator(
 min_rating = MinValueValidator(1, 'at least 1')
 max_rating = MaxValueValidator(5, 'max 5')
 
+ORDER_STATUS_CHOICES = [
+    ("pending", "pending"),
+    ("assigned", "assigned"),
+    ("on the way", "on the way"),
+    ("delivered", "delivered"),
+]
+
 
 class Configuration(SingletonModel):
 
@@ -224,7 +231,7 @@ class Order(models.Model):
     time = models.TimeField(_("time"), auto_now=True)
     delivery_address = models.CharField(_("address"), max_length=200)
     status = models.CharField(_("status"), max_length=15)
-    pay_type = models.CharField(_(""), max_length=25)
+    pay_type = models.CharField(_("pay_type"), max_length=25)
 
     @property
     def total_price(self):
