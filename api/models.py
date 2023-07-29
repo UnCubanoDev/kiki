@@ -230,7 +230,8 @@ class Order(models.Model):
     date = models.DateField(_("date"), auto_now=True)
     time = models.TimeField(_("time"), auto_now=True)
     delivery_address = models.CharField(_("address"), max_length=200)
-    status = models.CharField(_("status"), max_length=15)
+    status = models.CharField(
+        _("status"), max_length=15, choices=ORDER_STATUS_CHOICES)
     pay_type = models.CharField(_("pay_type"), max_length=25)
 
     @property
