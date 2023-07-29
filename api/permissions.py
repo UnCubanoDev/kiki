@@ -45,3 +45,13 @@ class IsDistributor(BasePermission):
         if not user.is_authenticated:
             return False
         return bool(Distributor.objects.filter(user=user).exists())
+
+
+class IsOrderDistributor(BasePermission):
+
+    def has_permission(self, request, obj):
+        print(obj)
+        # user = request.user
+        # if not user.is_authenticated:
+        #     return False
+        # return bool(Distributor.objects.filter(user=user).exists())

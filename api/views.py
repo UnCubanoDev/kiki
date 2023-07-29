@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from .permissions import IsDistributor, IsReadOnly, IsProductOwner, IsProvider
+from .permissions import IsDistributor, IsReadOnly, IsProductOwner, IsProvider, IsOrderDistributor
 
 from .models import Restaurant, Order, Category, Distributor, Product, ProductRating, RestaurantRating, DistributorRating
 from .serializers import (RestaurantSerializer, CategorySerializer,
@@ -86,11 +86,80 @@ class OrderViewSet(viewsets.ModelViewSet):
         detail=True,
         methods=['post'],
         permission_classes=[IsDistributor],
-        serializer_class=DistributorRatingSerializer
+        serializer_class=None
     )
-    def accept(self, request):
-        # TODO
-        pass
+    def accept(self, request, pk):
+        """
+            Action when the distributor accepts the order and turns the `status` to "`on the way`"
+        """
+        order = Order.objects.get(pk=pk)
+        distributor = Distributor.objects.get(user=request.user)
+        if order.distributor != distributor:
+            Response(status=status.HTTP_403_FORBIDDEN)
+        if order.status == 'assigned':
+            order.status = 'on the way'
+            order.save()
+            return Response(status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    @action(
+        detail=True,
+        methods=['post'],
+        permission_classes=[IsDistributor],
+        serializer_class=None
+    )
+    def deliver(self, request, pk):
+        """
+            Action when the distributor finshes the shipment and turns the `status` to "`delivered`"
+        """
+        order = Order.objects.get(pk=pk)
+        distributor = Distributor.objects.get(user=request.user)
+        if order.distributor != distributor:
+            Response(status=status.HTTP_403_FORBIDDEN)
+        if order.status == 'on the way':
+            order.status = 'delivered'
+            order.save()
+            return Response(status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    @action(
+        detail=False,
+        methods=['get'],
+        permission_classes=[IsDistributor],
+        serializer_class=OrderSerializer
+    )
+    def assigned(self, request):
+        distributor = Distributor.objects.get(user=request.user)
+        serializer = self.get_serializer(
+            data=Order.objects.filter(distributor=distributor, status='assigned'), many=True)
+        serializer.is_valid()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(
+        detail=False,
+        methods=['get'],
+        permission_classes=[IsDistributor],
+        serializer_class=OrderSerializer
+    )
+    def accepted(self, request):
+        distributor = Distributor.objects.get(user=request.user)
+        serializer = self.get_serializer(
+            data=Order.objects.filter(distributor=distributor, status='on the way'), many=True)
+        serializer.is_valid()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(
+        detail=False,
+        methods=['get'],
+        permission_classes=[IsDistributor],
+        serializer_class=OrderSerializer
+    )
+    def delivered(self, request):
+        distributor = Distributor.objects.get(user=request.user)
+        serializer = self.get_serializer(
+            data=Order.objects.filter(distributor=distributor, status='delivered'), many=True)
+        serializer.is_valid()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user, status='pending')
