@@ -1,9 +1,13 @@
+from typing import Any, Dict, Tuple
 from django.db import models
 from django.db.models import Avg
 from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
 from solo.models import SingletonModel
 
@@ -181,6 +185,7 @@ class Product(models.Model):
     )
     um = models.CharField(_("unit of measurement"), max_length=10)
     amount = models.IntegerField(_("amount"))
+    is_active = models.BooleanField(_("is active"), default=True)
 
     class Meta:
         verbose_name = _("product")

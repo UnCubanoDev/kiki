@@ -186,7 +186,7 @@ class DistributorViewSet(viewsets.ModelViewSet):
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.all()
+    queryset = Product.objects.filter(is_active=True)
     serializer_class = ProductSerializer
     permission_classes = [IsProvider | IsReadOnly | IsProductOwner]
 

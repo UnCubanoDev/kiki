@@ -1,4 +1,7 @@
+from typing import Any
 from django.contrib import admin
+from django.db.models.query import QuerySet
+from django.http.request import HttpRequest
 
 from .models import (Restaurant, Category, Distributor, DistributorRating,
                      OrderDetail, ProductRating, Product, Order, RestaurantRating, Configuration)
@@ -53,8 +56,9 @@ class ProductAdmin(admin.ModelAdmin):
         'um',
         'category',
         'rating',
+        'is_active',
     ]
-    pass
+    list_filter = ['is_active']
 
 
 @admin.register(RestaurantRating)
