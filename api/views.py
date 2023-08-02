@@ -190,7 +190,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     permission_classes = [IsProvider | IsReadOnly | IsProductOwner]
 
-    @method_decorator(cache_page(120))
+    @method_decorator(cache_page(30))
     @method_decorator(vary_on_cookie)
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
@@ -218,6 +218,10 @@ class ProductViewSet(viewsets.ModelViewSet):
             old_product.save()
         else:
             serializer.save()
+
+    def perform_destroy(self, instance):
+        instance.is_active = False
+        instance.save()
 
     @action(
         detail=False,
