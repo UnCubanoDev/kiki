@@ -51,6 +51,7 @@ class ProductRatingAdmin(admin.ModelAdmin):
 class ProductAdmin(admin.ModelAdmin):
     list_display = [
         'name',
+        'id',
         'restaurant',
         'price',
         'um',

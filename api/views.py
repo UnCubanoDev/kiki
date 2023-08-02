@@ -199,6 +199,26 @@ class ProductViewSet(viewsets.ModelViewSet):
         serializer.save(restaurant=Restaurant.objects.get(
             user=self.request.user))
 
+    def perform_update(self, serializer):
+        instance = serializer.instance
+        original_product = Product.objects.get(pk=instance.pk)
+        old_price = original_product.price
+        old_pk = original_product.pk
+        serializer.save()
+        print(instance.price)
+        print(original_product.price)
+        if instance.price != original_product.price:
+            instance.pk = None
+            new = instance.save()
+            print(new)
+            old_product = Product.objects.get(pk=old_pk)
+            print(old_product)
+            old_product.is_active = False
+            old_product.price = old_price
+            old_product.save()
+        else:
+            serializer.save()
+
     @action(
         detail=False,
         methods=['post'],
