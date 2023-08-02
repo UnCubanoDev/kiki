@@ -46,7 +46,7 @@ class RestaurantViewSet(viewsets.ModelViewSet):
     serializer_class = RestaurantSerializer
     # permission_classes = [IsAdminUser]
 
-    @method_decorator(cache_page(60))
+    @method_decorator(cache_page(30))
     @method_decorator(vary_on_cookie)
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)

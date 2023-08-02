@@ -64,7 +64,7 @@ class Restaurant(models.Model):
 
     @property
     def products(self):
-        return self.product_set.all()
+        return self.product_set.filter(is_active=True)
 
     def rate(self, user, rating):
         RestaurantRating.objects.update_or_create(
