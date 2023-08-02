@@ -35,4 +35,4 @@ jobs:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
-            There is a new commit from ${{ github.actor }} maked by ${{ github.repository }} with the message "${{ github.event.commits[0].message }}"
+            There is a new commit from ${{ github.repository }} maked by ${{ github.actor }} to the branch ${{ github.ref }} with the message "${{ github.event.commits[0].message }}"
