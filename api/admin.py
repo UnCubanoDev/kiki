@@ -100,4 +100,7 @@ class OrderAdmin(admin.ModelAdmin):
         'delivery_address',
         'status',
         'pay_type',
+        'sub_total',
+        'delivery_price',
+        'total_price',
     ]

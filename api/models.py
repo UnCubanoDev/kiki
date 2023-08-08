@@ -135,7 +135,7 @@ class Distributor(models.Model):
     @property
     def total_gain(self):
         delivered_orders = self.order_set.filter(status='delivered')
-        return float(sum([order.total_price for order in delivered_orders])) * float(Configuration.get_solo().distributor_gain) / 100
+        return float(sum([order.delivery_price for order in delivered_orders])) * float(Configuration.get_solo().distributor_gain) / 100
 
     def rate(self, user, rating):
         DistributorRating.objects.update_or_create(
@@ -263,7 +263,15 @@ class Order(models.Model):
 
     @property
     def total_price(self):
-        return sum([order_detail.product.price * order_detail.amount for order_detail in self.products.all()])
+        return self.sub_total + self.delivery_price
+
+    @property
+    def sub_total(self):
+        return sum([float(order_detail.product.price) * order_detail.amount for order_detail in self.products.all()])
+
+    @property
+    def delivery_price(self):
+        return float(sum([float(order_detail.product.price) * order_detail.amount for order_detail in self.products.all()]) * Configuration.get_solo().distributor_gain / 100)
 
     @property
     def business_orders(self):
