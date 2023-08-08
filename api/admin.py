@@ -16,9 +16,18 @@ class ConfigurationAdmin(SingletonModelAdmin):
 
 @admin.register(Restaurant)
 class RestaurantAdmin(admin.ModelAdmin):
-    list_display = ['name', 'address', 'phone',
-                    'user', 'tax', 'is_active', 'rating']
-    pass
+    list_display = [
+        'name',
+        'address',
+        'phone',
+        'user',
+        'tax',
+        'is_active',
+        'rating',
+        'total_gain',
+        'total_gain_clean',
+        'debt',
+    ]
 
 
 @admin.register(Category)
@@ -28,7 +37,8 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Distributor)
 class DistributorAdmin(admin.ModelAdmin):
-    list_display = ['user', 'vehicle_id', 'vehicle_type', 'rating']
+    list_display = ['user', 'vehicle_id',
+                    'vehicle_type', 'rating', 'total_gain']
     pass
 
 
@@ -39,7 +49,21 @@ class DistributorRatingAdmin(admin.ModelAdmin):
 
 @admin.register(OrderDetail)
 class OrderDetailAdmin(admin.ModelAdmin):
-    pass
+    list_display = [
+        'order',
+        'product',
+        'business',
+        'amount',
+        'was_paid_by_business',
+    ]
+    search_fields = [
+        'order',
+        'business',
+        'product',
+    ]
+    list_filter = [
+        'was_paid_by_business',
+    ]
 
 
 @admin.register(ProductRating)

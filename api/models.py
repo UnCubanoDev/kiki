@@ -27,6 +27,7 @@ ORDER_STATUS_CHOICES = [
 class Configuration(SingletonModel):
 
     exchange_rate = models.FloatField(_("exchange rate"), default=0)
+    distributor_gain = models.FloatField(_("distributor gain"), default=0)
 
     class Meta:
         verbose_name = _("configuration")
@@ -57,6 +58,22 @@ class Restaurant(models.Model):
     type = models.CharField(_("type"), max_length=50)
     latitude = models.CharField(_("latitude"), max_length=25, default='')
     longitude = models.CharField(_("longitude"), max_length=25, default='')
+
+    @property
+    def total_gain(self):
+        return sum([order.product.price * order.amount for order in OrderDetail.objects.filter(product__restaurant=self, order__status='delivered')])
+
+    @property
+    def total_gain_clean(self):
+        total_debt = sum([order.product.price * order.amount for order in OrderDetail.objects.filter(
+            product__restaurant=self, order__status='delivered')])
+        return float(self.total_gain) - (float(total_debt) * self.tax / 100)
+
+    @property
+    def debt(self):
+        without_paid = sum([order.product.price * order.amount for order in OrderDetail.objects.filter(
+            product__restaurant=self, was_paid_by_business=False, order__status='delivered')])
+        return float(without_paid) * self.tax / 100
 
     @property
     def rating(self):
@@ -114,6 +131,11 @@ class Distributor(models.Model):
     @property
     def rating(self):
         return self.distributorrating_set.aggregate(Avg('rating'))['rating__avg'] or 0
+
+    @property
+    def total_gain(self):
+        delivered_orders = self.order_set.filter(status='delivered')
+        return float(sum([order.total_price for order in delivered_orders])) * float(Configuration.get_solo().distributor_gain) / 100
 
     def rate(self, user, rating):
         DistributorRating.objects.update_or_create(
@@ -267,7 +289,7 @@ class Order(models.Model):
         verbose_name_plural = _("orders")
 
     def __str__(self):
-        return str(self.pk)
+        return str(self.user)
 
     def get_absolute_url(self):
         return reverse("order_detail", kwargs={"pk": self.pk})
@@ -280,13 +302,19 @@ class OrderDetail(models.Model):
     product = models.ForeignKey("api.Product", verbose_name=_(
         "product"), on_delete=models.DO_NOTHING)
     amount = models.IntegerField(_("amount"), validators=[min_rating])
+    was_paid_by_business = models.BooleanField(
+        _("was paid by business"), default=False)
+
+    @property
+    def business(self):
+        return self.product.restaurant
 
     class Meta:
         verbose_name = _("order detail")
         verbose_name_plural = _("order details")
 
     def __str__(self):
-        return f'{self.pk or ""}'
+        return f'{self.order.user or ""}'
 
     def get_absolute_url(self):
         return reverse("orderdetail_detail", kwargs={"pk": self.pk})
