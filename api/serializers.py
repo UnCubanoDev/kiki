@@ -46,7 +46,6 @@ class DistributorSerializer(serializers.ModelSerializer):
             'vehicle_image',
             'vehicle_id',
             'vehicle_type',
-            'user',
         ]
 
 
@@ -133,6 +132,7 @@ class OrderSerializer(serializers.ModelSerializer):
     business_orders = BusinessOrderSerializer(many=True, read_only=True)
     status = serializers.CharField(read_only=True)
     products = OrderDetailSerializer(many=True, write_only=True)
+    distributor = DistributorSerializer(read_only=True)
 
     class Meta:
         model = Order
