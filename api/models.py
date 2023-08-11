@@ -21,6 +21,7 @@ ORDER_STATUS_CHOICES = [
     ("assigned", "assigned"),
     ("on the way", "on the way"),
     ("delivered", "delivered"),
+    ("canceled", "canceled"),
 ]
 
 
