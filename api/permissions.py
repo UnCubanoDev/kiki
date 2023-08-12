@@ -1,6 +1,6 @@
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 
-from .models import Restaurant, Distributor, Product
+from .models import Restaurant, Distributor, Product, Order
 
 
 class IsReadOnly(BasePermission):
@@ -55,3 +55,25 @@ class IsOrderDistributor(BasePermission):
         # if not user.is_authenticated:
         #     return False
         # return bool(Distributor.objects.filter(user=user).exists())
+
+
+class IsClientAndOrderOwner(BasePermission):
+
+    def has_object_permission(self, request, view, obj):
+
+        print(obj)
+        user = request.user
+
+        if not user.is_authenticated:
+            return False
+
+        return bool(obj.user == user)
+
+
+class IsOrderPending(BasePermission):
+
+    def has_object_permission(self, request, view, obj):
+
+        print(obj)
+
+        return bool(obj.status == 'pending')

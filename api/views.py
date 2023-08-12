@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from .permissions import IsDistributor, IsReadOnly, IsProductOwner, IsProvider, IsOrderDistributor
+from .permissions import IsDistributor, IsReadOnly, IsProductOwner, IsProvider, IsOrderDistributor, IsClientAndOrderOwner, IsOrderPending
 
 from .models import Restaurant, Order, Category, Distributor, Product, ProductRating, RestaurantRating, DistributorRating
 from .serializers import (RestaurantSerializer, CategorySerializer,
@@ -98,6 +98,26 @@ class OrderViewSet(viewsets.ModelViewSet):
             Response(status=status.HTTP_403_FORBIDDEN)
         if order.status == 'assigned':
             order.status = 'on the way'
+            order.save()
+            return Response(status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    @action(
+        detail=True,
+        methods=['post'],
+        permission_classes=[IsClientAndOrderOwner, IsOrderPending],
+        serializer_class=None
+    )
+    def cancel(self, request, pk):
+        """
+            Action when the client cancels the order and turns the `status` to "`canceled`"
+        """
+        order = Order.objects.get(pk=pk)
+        distributor = Distributor.objects.get(user=request.user)
+        if order.distributor != distributor:
+            Response(status=status.HTTP_403_FORBIDDEN)
+        if order.status == 'assigned':
+            order.status = 'canceled'
             order.save()
             return Response(status=status.HTTP_201_CREATED)
         return Response(status=status.HTTP_400_BAD_REQUEST)

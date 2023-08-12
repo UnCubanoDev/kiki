@@ -145,6 +145,8 @@ class OrderSerializer(serializers.ModelSerializer):
             'time',
             'delivery_address',
             'pay_type',
+            'sub_total',
+            'delivery_price',
             'total_price',
             'business_orders',
             'status',

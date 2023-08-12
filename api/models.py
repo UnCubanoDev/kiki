@@ -1,4 +1,4 @@
-from typing import Any, Dict, Tuple
+import math
 from django.db import models
 from django.db.models import Avg
 from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
@@ -272,7 +272,7 @@ class Order(models.Model):
 
     @property
     def delivery_price(self):
-        return float(sum([float(order_detail.product.price) * order_detail.amount for order_detail in self.products.all()]) * Configuration.get_solo().distributor_gain / 100)
+        return math.ceil(sum([float(order_detail.product.price) * order_detail.amount for order_detail in self.products.all()]) * Configuration.get_solo().distributor_gain / 100)
 
     @property
     def business_orders(self):
