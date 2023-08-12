@@ -1,6 +1,6 @@
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 
-from .models import Restaurant, Distributor, Product, Order
+from .models import Restaurant, Distributor
 
 
 class IsReadOnly(BasePermission):

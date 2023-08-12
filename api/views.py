@@ -2,13 +2,13 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from .permissions import IsDistributor, IsReadOnly, IsProductOwner, IsProvider, IsOrderDistributor, IsClientAndOrderOwner, IsOrderPending
+from rest_framework.permissions import IsAuthenticated
+from .permissions import IsDistributor, IsReadOnly, IsProductOwner, IsProvider, IsClientAndOrderOwner, IsOrderPending
 
-from .models import Restaurant, Order, Category, Distributor, Product, ProductRating, RestaurantRating, DistributorRating
+from .models import Restaurant, Order, Category, Distributor, Product
 from .serializers import (RestaurantSerializer, CategorySerializer,
                           OrderSerializer, DistributorSerializer, ProductSerializer,
-                          OrderDetailSerializer, ProductRatingSerializer, RestaurantRatingSerializer,
+                          ProductRatingSerializer, RestaurantRatingSerializer,
                           DistributorRatingSerializer
                           )
 

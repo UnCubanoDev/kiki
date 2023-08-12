@@ -6,9 +6,6 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
-from django.db.models.signals import pre_save
-from django.dispatch import receiver
-
 from solo.models import SingletonModel
 
 phone_validator = RegexValidator(

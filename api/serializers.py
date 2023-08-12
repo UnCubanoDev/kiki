@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from .models import (Restaurant, RestaurantRating, Category,
                      Distributor, Order, Product, ProductRating, OrderDetail, DistributorRating)
-from directorio.models import User
 from directorio.serializers import UserModelSerializer
 
 
