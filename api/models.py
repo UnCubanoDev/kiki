@@ -138,6 +138,14 @@ class Distributor(models.Model):
         delivered_orders = self.order_set.filter(status='delivered')
         return float(sum([order.delivery_price for order in delivered_orders])) * float(Configuration.get_solo().distributor_gain) / 100
 
+    @property
+    def debt(self):
+
+        orders = Order.objects.filter(
+            distributor=self, was_paid_by_distributor=False, status='delivered')
+        without_paid = sum([order.delivery_price for order in orders])
+        return float(without_paid) * 20 / 100
+
     def rate(self, user, rating):
         DistributorRating.objects.update_or_create(
             user=user, distributor=self, defaults={'rating': int(rating)})
@@ -261,6 +269,8 @@ class Order(models.Model):
     status = models.CharField(
         _("status"), max_length=15, choices=ORDER_STATUS_CHOICES)
     pay_type = models.CharField(_("pay_type"), max_length=25)
+    was_paid_by_distributor = models.BooleanField(
+        _("was paid by distributor"),  default=False)
 
     @property
     def total_price(self):

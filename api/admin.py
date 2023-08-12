@@ -38,7 +38,7 @@ class CategoryAdmin(admin.ModelAdmin):
 @admin.register(Distributor)
 class DistributorAdmin(admin.ModelAdmin):
     list_display = ['user', 'vehicle_id',
-                    'vehicle_type', 'rating', 'total_gain']
+                    'vehicle_type', 'rating', 'total_gain', 'debt']
     pass
 
 
@@ -97,10 +97,12 @@ class OrderAdmin(admin.ModelAdmin):
         'user',
         'date',
         'time',
+        'distributor',
         'delivery_address',
         'status',
         'pay_type',
         'sub_total',
         'delivery_price',
         'total_price',
+        'was_paid_by_distributor',
     ]
