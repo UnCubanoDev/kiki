@@ -4,7 +4,7 @@ from django.db.models.query import QuerySet
 from django.http.request import HttpRequest
 
 from .models import (Restaurant, Category, Distributor, DistributorRating,
-                     OrderDetail, ProductRating, Product, Order, RestaurantRating, Configuration)
+                     OrderDetail, ProductRating, Product, Order, RestaurantRating, Configuration, ProductCategory)
 
 from solo.admin import SingletonModelAdmin
 
@@ -33,6 +33,11 @@ class RestaurantAdmin(admin.ModelAdmin):
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(ProductCategory)
+class ProductCategoryAdmin(admin.ModelAdmin):
     pass
 
 

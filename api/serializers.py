@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import (Restaurant, RestaurantRating, Category,
-                     Distributor, Order, Product, ProductRating, OrderDetail, DistributorRating)
+                     Distributor, Order, Product, ProductRating, OrderDetail, DistributorRating, ProductCategory)
 from directorio.serializers import UserModelSerializer
 
 
@@ -75,12 +75,22 @@ class ProductSerializer(serializers.ModelSerializer):
         ]
 
 
+class ProductCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductCategory
+        exclude = [
+            'business'
+        ]
+
+
 class RestaurantSerializer(serializers.ModelSerializer):
 
     user = UserModelSerializer()
     products = ProductSerializer(many=True)
-    categories_product = serializers.SlugRelatedField(
+    bussiness_type = serializers.SlugRelatedField(
         slug_field='name', queryset=Category.objects.all(), many=True)
+    categories_product = serializers.SlugRelatedField(
+        slug_field='name', queryset=ProductCategory.objects.all(), many=True)
 
     def save(self, **kwargs):
         return super().save(**kwargs)
@@ -98,6 +108,7 @@ class RestaurantSerializer(serializers.ModelSerializer):
             'time',
             'rating',
             'products',
+            'bussiness_type',
             'categories_product',
             'type',
             'latitude',

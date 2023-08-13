@@ -5,11 +5,11 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsDistributor, IsReadOnly, IsProductOwner, IsProvider, IsClientAndOrderOwner, IsOrderPending
 
-from .models import Restaurant, Order, Category, Distributor, Product
+from .models import Restaurant, Order, Category, Distributor, Product, ProductCategory
 from .serializers import (RestaurantSerializer, CategorySerializer,
                           OrderSerializer, DistributorSerializer, ProductSerializer,
                           ProductRatingSerializer, RestaurantRatingSerializer,
-                          DistributorRatingSerializer
+                          DistributorRatingSerializer, ProductCategorySerializer
                           )
 
 from django.utils.decorators import method_decorator
@@ -251,3 +251,15 @@ class ProductViewSet(viewsets.ModelViewSet):
     )
     def rate(self, request):
         return super_rate(request, 'product', self.get_serializer, Product)
+
+
+class ProductCategoryViewSet(viewsets.ModelViewSet):
+    queryset = ProductCategory.objects.all()
+    serializer_class = ProductCategorySerializer
+    permission_classes = [IsProvider | IsReadOnly]
+
+    def get_queryset(self):
+        return ProductCategory.objects.filter(business=Restaurant.objects.get(user=self.request.user))
+
+    def perform_create(self, serializer):
+        return serializer.save(business=Restaurant.objects.get(user=self.request.user))

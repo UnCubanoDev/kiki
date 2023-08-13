@@ -38,6 +38,23 @@ class Configuration(SingletonModel):
         return reverse("configuration_detail", kwargs={"pk": self.pk})
 
 
+class ProductCategory(models.Model):
+
+    name = models.CharField(_("name"), max_length=24)
+    business = models.ForeignKey("api.Restaurant", verbose_name=_(
+        "business"), on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = _("product category")
+        verbose_name_plural = _("product categories")
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse("productcategory_detail", kwargs={"pk": self.pk})
+
+
 class Restaurant(models.Model):
 
     name = models.CharField(_("name"), max_length=70)
@@ -49,14 +66,18 @@ class Restaurant(models.Model):
     user = models.ForeignKey(
         get_user_model(), verbose_name=_("user"), on_delete=models.CASCADE)
     time = models.CharField(_("time"), max_length=10)
-    categories_product = models.ManyToManyField(
-        "api.Category", verbose_name=_("Products Categories"))
+    bussiness_type = models.ManyToManyField(
+        "api.Category", verbose_name=_("Business type"))
     is_active = models.BooleanField(_("is active"), default=True)
     tax = models.FloatField(_("tax"), default=10)
     type = models.CharField(_("type"), max_length=50)
     latitude = models.CharField(_("latitude"), max_length=25, default='')
     longitude = models.CharField(_("longitude"), max_length=25, default='')
     recommended = models.BooleanField(_("recommended"), default=False)
+
+    @property
+    def categories_product(self):
+        return self.productcategory_set.all()
 
     @property
     def total_gain(self):
