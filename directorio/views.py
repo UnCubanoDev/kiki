@@ -7,12 +7,12 @@ from rest_framework import status, viewsets, generics, mixins
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 # Serializers
-from directorio.serializers import UserLoginSerializer, UserModelSerializer, UpdateUserSerializer
+from directorio.serializers import UserLoginSerializer, UserModelSerializer, UpdateUserSerializer, AddressSerializer
 from api.serializers import DistributorSerializer, RestaurantSerializer
 
 
 # Models
-from directorio.models import User
+from directorio.models import User, Address
 from api.models import Distributor, Restaurant
 
 
@@ -101,3 +101,15 @@ class ChangePasswordView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(status=status.HTTP_201_CREATED)
+
+
+class AddressViewSet(viewsets.ModelViewSet):
+    queryset = Address.objects.all()
+    serializer_class = AddressSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Address.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        return serializer.save(user=self.request.user)

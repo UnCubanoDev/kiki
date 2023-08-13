@@ -16,6 +16,30 @@ phone_validator = RegexValidator(
 # Create your models here.
 
 
+class Address(models.Model):
+
+    name = models.CharField(_("name"), max_length=240)
+    details = models.CharField(_("details"), max_length=240)
+    long = models.CharField(_("longitude"), max_length=50)
+    lat = models.CharField(_("latitude"), max_length=50)
+    receiver_name = models.CharField(
+        _("reciever name"), max_length=80, blank=True, null=True)
+    phone = models.CharField(
+        _("phone number"), max_length=18, blank=True, null=True)
+    user = models.ForeignKey("directorio.User", verbose_name=_(
+        "user"), on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = _("address")
+        verbose_name_plural = _("addresses")
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse("address_detail", kwargs={"pk": self.pk})
+
+
 class User(AbstractUser):
 
     phone = models.CharField(

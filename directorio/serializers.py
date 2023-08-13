@@ -1,9 +1,17 @@
-from dataclasses import field
-from directorio.models import User
+from directorio.models import User, Address
 from django.contrib.auth import authenticate, password_validation
 
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
+
+
+class AddressSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Address
+        exclude = [
+            'user',
+        ]
 
 
 class UserModelSerializer(serializers.ModelSerializer):

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User
+from .models import User, Address
 
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm
@@ -15,3 +15,8 @@ class MyUserAdmin(UserAdmin):
 
 
 admin.site.register(User, UserAdmin)
+
+
+@admin.register(Address)
+class AddressAdmin(admin.ModelAdmin):
+    pass
