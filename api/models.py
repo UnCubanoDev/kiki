@@ -56,6 +56,7 @@ class Restaurant(models.Model):
     type = models.CharField(_("type"), max_length=50)
     latitude = models.CharField(_("latitude"), max_length=25, default='')
     longitude = models.CharField(_("longitude"), max_length=25, default='')
+    recommended = models.BooleanField(_("recommended"), default=False)
 
     @property
     def total_gain(self):

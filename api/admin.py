@@ -23,6 +23,7 @@ class RestaurantAdmin(admin.ModelAdmin):
         'user',
         'tax',
         'is_active',
+        'recommended',
         'rating',
         'total_gain',
         'total_gain_clean',

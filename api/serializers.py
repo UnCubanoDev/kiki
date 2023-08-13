@@ -102,6 +102,7 @@ class RestaurantSerializer(serializers.ModelSerializer):
             'type',
             'latitude',
             'longitude',
+            'recommended',
         ]
 
 
