@@ -83,8 +83,9 @@ class RestaurantViewSet(viewsets.ModelViewSet):
         total_month = []
         total_month_gain = 0
         month_days = monthrange(int(year), int(month))[1]
+        delivered_orders = orders.filter(order__status='delivered')
         for month_day in range(1, month_days + 1):
-            day_gain = sum([order.price for order in orders.filter(
+            day_gain = sum([order.price for order in delivered_orders.filter(
                 order__date__day=int(month_day))])
             total_month.append(day_gain)
             total_month_gain += day_gain
