@@ -1,6 +1,6 @@
 import math
 from django.db import models
-from django.db.models import Avg
+from django.db.models import Avg, Count
 from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -36,6 +36,31 @@ class Configuration(SingletonModel):
 
     def get_absolute_url(self):
         return reverse("configuration_detail", kwargs={"pk": self.pk})
+
+
+class Metrics(SingletonModel):
+
+    @property
+    def super_clients(self):
+        users = Order.objects.values('user').annotate(
+            total=Count('user')).order_by('-total')[:5]
+        super_clients = []
+        for user in users:
+            super_clients.append({
+                'user': get_user_model().objects.get(pk=user['user']),
+                'total': user['total'],
+            })
+        print(super_clients)
+        return super_clients
+
+    class Meta:
+        verbose_name = _("Metrics")
+
+    def __str__(self):
+        return 'metrics'
+
+    def get_absolute_url(self):
+        return reverse("metrics_detail", kwargs={"pk": self.pk})
 
 
 class ProductCategory(models.Model):

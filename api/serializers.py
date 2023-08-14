@@ -1,7 +1,23 @@
 from rest_framework import serializers
 from .models import (Restaurant, RestaurantRating, Category,
-                     Distributor, Order, Product, ProductRating, OrderDetail, DistributorRating, ProductCategory)
+                     Distributor, Order, Product, ProductRating, OrderDetail, DistributorRating, ProductCategory, Metrics)
 from directorio.serializers import UserModelSerializer
+from directorio.models import User
+
+
+class SuperClientsSerializer(serializers.Serializer):
+    user = UserModelSerializer()
+    total = serializers.IntegerField()
+
+
+class MetricsSerializer(serializers.ModelSerializer):
+    super_clients = SuperClientsSerializer(many=True)
+
+    class Meta:
+        model = Metrics
+        fields = [
+            'super_clients'
+        ]
 
 
 class DistributorRatingSerializer(serializers.ModelSerializer):

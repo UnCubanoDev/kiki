@@ -1,15 +1,15 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, generics
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsDistributor, IsReadOnly, IsProductOwner, IsProvider, IsClientAndOrderOwner, IsOrderPending
 
-from .models import Restaurant, Order, Category, Distributor, Product, ProductCategory
+from .models import Restaurant, Order, Category, Distributor, Product, ProductCategory, Metrics
 from .serializers import (RestaurantSerializer, CategorySerializer,
                           OrderSerializer, DistributorSerializer, ProductSerializer,
                           ProductRatingSerializer, RestaurantRatingSerializer,
-                          DistributorRatingSerializer, ProductCategorySerializer
+                          DistributorRatingSerializer, ProductCategorySerializer, MetricsSerializer
                           )
 
 from django.utils.decorators import method_decorator
@@ -263,3 +263,10 @@ class ProductCategoryViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         return serializer.save(business=Restaurant.objects.get(user=self.request.user))
+
+
+class MetricsRetrieveAPIView(generics.RetrieveAPIView):
+    serializer_class = MetricsSerializer
+
+    def get_object(self):
+        return Metrics.get_solo()
