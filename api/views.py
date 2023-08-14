@@ -1,3 +1,7 @@
+from datetime import date
+from calendar import monthrange
+import math
+from django.db.models import Count
 from rest_framework import viewsets, status, generics
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -5,11 +9,12 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsDistributor, IsReadOnly, IsProductOwner, IsProvider, IsClientAndOrderOwner, IsOrderPending
 
-from .models import Restaurant, Order, Category, Distributor, Product, ProductCategory, Metrics
+from .models import Restaurant, Order, Category, Distributor, Product, ProductCategory, Metrics, OrderDetail
 from .serializers import (RestaurantSerializer, CategorySerializer,
                           OrderSerializer, DistributorSerializer, ProductSerializer,
                           ProductRatingSerializer, RestaurantRatingSerializer,
-                          DistributorRatingSerializer, ProductCategorySerializer, MetricsSerializer
+                          DistributorRatingSerializer, ProductCategorySerializer, MetricsSerializer,
+                          RestaurantMetricsSerializer
                           )
 
 from django.utils.decorators import method_decorator
@@ -59,6 +64,41 @@ class RestaurantViewSet(viewsets.ModelViewSet):
     )
     def rate(self, request):
         return super_rate(request, 'restaurant', self.get_serializer, Restaurant)
+
+    @action(
+        detail=True,
+        methods=['GET'],
+        permission_classes=[],
+        serializer_class=RestaurantMetricsSerializer
+    )
+    def metrics(self, request, pk=None):
+        business = Restaurant.objects.get(pk=pk)
+        month = request.query_params.get('month') or date.today().month
+        year = request.query_params.get('year') or date.today().year
+        orders = OrderDetail.objects.filter(
+            order__date__year=year,
+            order__date__month=month,
+            product__restaurant=business
+        )
+        total_month = []
+        total_month_gain = 0
+        month_days = monthrange(int(year), int(month))[1]
+        for month_day in range(1, month_days + 1):
+            day_gain = sum([order.price for order in orders.filter(
+                order__date__day=int(month_day))])
+            total_month.append(day_gain)
+            total_month_gain += day_gain
+        serializer = RestaurantMetricsSerializer(
+            {
+                'total_month': total_month,
+                'total_month_gain': math.ceil(total_month_gain),
+                'total_month_tax': math.ceil(float(total_month_gain) * float(business.tax) / 100),
+                'total_month_gain_clean': math.floor(float(total_month_gain) - float(float(total_month_gain) * float(business.tax) / 100)),
+                'orders': orders.values('order__status').annotate(
+                    count=Count('order__status')).order_by()
+            }
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):

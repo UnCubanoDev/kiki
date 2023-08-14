@@ -372,6 +372,10 @@ class OrderDetail(models.Model):
     def business(self):
         return self.product.restaurant
 
+    @property
+    def price(self):
+        return self.product.price * self.amount
+
     class Meta:
         verbose_name = _("order detail")
         verbose_name_plural = _("order details")

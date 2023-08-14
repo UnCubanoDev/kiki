@@ -204,3 +204,16 @@ class OrderDetailSerializer(serializers.ModelSerializer):
             'product',
             'amount',
         ]
+
+
+class RestaurantMetricsOrdersSerializer(serializers.Serializer):
+    order__status = serializers.CharField()
+    count = serializers.IntegerField()
+
+
+class RestaurantMetricsSerializer(serializers.Serializer):
+    total_month = serializers.ListField(child=serializers.FloatField())
+    total_month_gain = serializers.FloatField()
+    total_month_tax = serializers.FloatField()
+    total_month_gain_clean = serializers.FloatField()
+    orders = RestaurantMetricsOrdersSerializer(many=True)
