@@ -89,14 +89,25 @@ class RestaurantViewSet(viewsets.ModelViewSet):
                 order__date__day=int(month_day))])
             total_month.append(day_gain)
             total_month_gain += day_gain
+        orders_by_status = orders.values('order__status').annotate(
+            count=Count('order__status')).order_by()
+        orders_status = {
+            'delivered': 0,
+            'pending': 0,
+            'canceled': 0,
+        }
+        for os in orders_by_status:
+            if os['order__status'] in ['pending', 'assigned']:
+                orders_status['pending'] += os['count']
+            else:
+                orders_status[os['order__status']] = os['count']
         serializer = RestaurantMetricsSerializer(
             {
                 'total_month': total_month,
                 'total_month_gain': math.ceil(total_month_gain),
                 'total_month_tax': math.ceil(float(total_month_gain) * float(business.tax) / 100),
                 'total_month_gain_clean': math.floor(float(total_month_gain) - float(float(total_month_gain) * float(business.tax) / 100)),
-                'orders': orders.values('order__status').annotate(
-                    count=Count('order__status')).order_by()
+                'orders': orders_status
             }
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
