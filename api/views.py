@@ -97,7 +97,7 @@ class RestaurantViewSet(viewsets.ModelViewSet):
             'canceled': 0,
         }
         for os in orders_by_status:
-            if os['order__status'] in ['pending', 'assigned']:
+            if os['order__status'] in ['pending', 'assigned', 'on the way']:
                 orders_status['pending'] += os['count']
             else:
                 orders_status[os['order__status']] = os['count']
