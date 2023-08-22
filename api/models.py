@@ -248,7 +248,7 @@ class Product(models.Model):
     image = models.ImageField(
         _("image"), upload_to='products/', null=True, blank=True)
     category = models.ForeignKey(
-        "api.Category",
+        "api.ProductCategory",
         verbose_name=_("category"),
         on_delete=models.PROTECT
     )
