@@ -132,8 +132,29 @@ class RestaurantSerializer(serializers.ModelSerializer):
         ]
 
 
+class OrderProductDetailSerializer(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(
+        slug_field='name', queryset=Category.objects.all())
+
+    restaurant = RestaurantSerializer(read_only=True)
+
+    class Meta:
+        model = Product
+        fields = [
+            'id',
+            'name',
+            'description',
+            'price',
+            'time',
+            'image',
+            'category',
+            'restaurant',
+            'amount',
+        ]
+
+
 class OrderProductsSerializer(serializers.Serializer):
-    detail = ProductSerializer(read_only=True)
+    detail = OrderProductDetailSerializer(read_only=True)
     amount = serializers.IntegerField()
 
 
