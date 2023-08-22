@@ -308,7 +308,8 @@ class Order(models.Model):
         "distributor"), on_delete=models.DO_NOTHING, null=True, blank=True)
     date = models.DateField(_("date"), auto_now=True)
     time = models.TimeField(_("time"), auto_now=True)
-    delivery_address = models.CharField(_("address"), max_length=200)
+    delivery_address = models.ForeignKey(
+        "directorio.Address", verbose_name=_("delivery address"), on_delete=models.PROTECT)
     status = models.CharField(
         _("status"), max_length=15, choices=ORDER_STATUS_CHOICES)
     pay_type = models.CharField(_("pay_type"), max_length=25)

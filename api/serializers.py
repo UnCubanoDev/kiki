@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (Restaurant, RestaurantRating, Category,
                      Distributor, Order, Product, ProductRating, OrderDetail, DistributorRating, ProductCategory, Metrics)
-from directorio.serializers import UserModelSerializer
+from directorio.serializers import UserModelSerializer, AddressSerializer
 from directorio.models import User
 
 
@@ -159,6 +159,7 @@ class OrderSerializer(serializers.ModelSerializer):
     status = serializers.CharField(read_only=True)
     products = OrderDetailSerializer(many=True, write_only=True)
     distributor = DistributorSerializer(read_only=True)
+    delivery_address = AddressSerializer(read_only=True)
 
     class Meta:
         model = Order
