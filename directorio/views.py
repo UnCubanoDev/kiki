@@ -53,6 +53,13 @@ class UserViewSet(viewsets.GenericViewSet, mixins.UpdateModelMixin, mixins.Retri
         kwargs['partial'] = True
         return self.update(request, *args, **kwargs)
 
+class UserInfoView(generics.GenericAPIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserModelSerializer(instance=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class SignupView(generics.GenericAPIView):
 
