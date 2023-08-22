@@ -95,7 +95,6 @@ class Restaurant(models.Model):
         "api.Category", verbose_name=_("Business type"))
     is_active = models.BooleanField(_("is active"), default=True)
     tax = models.FloatField(_("tax"), default=10)
-    type = models.CharField(_("type"), max_length=50)
     latitude = models.CharField(_("latitude"), max_length=25, default='')
     longitude = models.CharField(_("longitude"), max_length=25, default='')
     recommended = models.BooleanField(_("recommended"), default=False)
