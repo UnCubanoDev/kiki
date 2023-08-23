@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import (Restaurant, RestaurantRating, Category,
                      Distributor, Order, Product, ProductRating, OrderDetail, DistributorRating, ProductCategory, Metrics)
 from directorio.serializers import UserModelSerializer, AddressSerializer
-from directorio.models import User
+from directorio.models import User, Address
 
 
 class SuperClientsSerializer(serializers.Serializer):
@@ -183,6 +183,7 @@ class OrderSerializer(serializers.ModelSerializer):
     products = OrderDetailSerializer(many=True, write_only=True)
     distributor = DistributorSerializer(read_only=True)
     delivery_address = AddressSerializer(read_only=True)
+    delivery_address_id = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = Order
@@ -194,6 +195,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'date',
             'time',
             'delivery_address',
+            'delivery_address_id',
             'pay_type',
             'sub_total',
             'delivery_price',
@@ -211,7 +213,9 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         products_data = validated_data.pop('products')
-        order = Order.objects.create(**validated_data)
+        delivery_address = validated_data.pop('delivery_address_id')
+        delivery_address = Address.objects.get(pk=delivery_address)
+        order = Order.objects.create(delivery_address= delivery_address, **validated_data)
         for order_detail in products_data:
             OrderDetail.objects.create(
                 order=order, product=order_detail['product'], amount=order_detail['amount'])
