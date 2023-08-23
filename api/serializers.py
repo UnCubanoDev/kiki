@@ -61,6 +61,7 @@ class DistributorSerializer(serializers.ModelSerializer):
             'vehicle_image',
             'vehicle_id',
             'vehicle_type',
+            'rating',
         ]
 
 
@@ -88,6 +89,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'category',
             'restaurant',
             'amount',
+            'rating',
         ]
 
 
