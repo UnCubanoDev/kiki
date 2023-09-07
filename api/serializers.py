@@ -75,7 +75,7 @@ class ProductSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
         slug_field='name', queryset=Category.objects.all())
 
-    restaurant = serializers.PrimaryKeyRelatedField(read_only=True)
+    restaurant_id = serializers.PrimaryKeyRelatedField(read_only=True, source='restaurant')
 
     class Meta:
         model = Product
@@ -87,7 +87,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'time',
             'image',
             'category',
-            'restaurant',
+            'restaurant_id',
             'amount',
             'rating',
         ]
