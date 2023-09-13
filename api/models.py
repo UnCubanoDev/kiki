@@ -26,6 +26,8 @@ class Configuration(SingletonModel):
 
     exchange_rate = models.FloatField(_("exchange rate"), default=0)
     distributor_gain = models.FloatField(_("distributor gain"), default=0)
+    delivery_distance_price = models.IntegerField(_("delivery distance price"), default=0)
+    delivery_fixed_price = models.IntegerField(_("delivery fixed price"), default=300)
 
     class Meta:
         verbose_name = _("configuration")
@@ -315,6 +317,7 @@ class Order(models.Model):
     pay_type = models.CharField(_("pay_type"), max_length=25)
     was_paid_by_distributor = models.BooleanField(
         _("was paid by distributor"),  default=False)
+    delivery_total_distance = models.IntegerField(_("delivery total distance"))
 
     @property
     def total_price(self):
@@ -326,7 +329,10 @@ class Order(models.Model):
 
     @property
     def delivery_price(self):
-        return math.ceil(sum([float(order_detail.product.price) * order_detail.amount for order_detail in self.products.all()]) * Configuration.get_solo().distributor_gain / 100)
+        if self.delivery_total_distance > 5:
+            return self.delivery_total_distance * Configuration.get_solo().delivery_distance_price
+        else:
+            return Configuration.get_solo().delivery_fixed_price
 
     @property
     def business_orders(self):
