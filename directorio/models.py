@@ -10,6 +10,8 @@ from django.urls import reverse
 
 from django_rest_passwordreset.signals import reset_password_token_created
 
+from directorio.helper import send_whatsapp_message
+
 phone_validator = RegexValidator(
     r'^\+[1-9]\d{1,14}$', _('phone number in the format '))
 
@@ -44,15 +46,16 @@ class User(AbstractUser):
 
     phone = models.CharField(
         max_length=25,
-        validators=[phone_validator])
-    email = models.EmailField(_('email address'), unique=True)
+        validators=[phone_validator], unique=True)
+    email = models.EmailField(_('email address'), unique=True, blank=True, null=True)
     image = models.ImageField(
         _("imagen"), upload_to='usuarios/', null=True, blank=True)
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = 'phone'
     REQUIRED_FIELDS = ['username']
+    is_active = models.BooleanField(_("active"), default=False)
 
     def __str__(self) -> str:
-        return self.first_name or self.email
+        return self.first_name or self.phone
 
 
 @receiver(reset_password_token_created)
@@ -67,33 +70,8 @@ def password_reset_token_created(sender, instance, reset_password_token, *args, 
     :param kwargs:
     :return:
     """
-    print(reset_password_token.user.email)
-    # send an e-mail to the user
     context = {
-        'current_user': reset_password_token.user,
-        'username': reset_password_token.user.username,
-        'email': reset_password_token.user.email,
-        'reset_password_url': "{}?token={}".format(
-            instance.request.build_absolute_uri(
-                reverse('password_reset:reset-password-confirm')),
-            reset_password_token.key)
+        'phone': reset_password_token.user.phone[1:],
+        'message': f'This is your key\n{reset_password_token.key}'
     }
-
-    # render email text
-    # email_html_message = render_to_string(
-    #     'email/user_reset_password.html', context)
-    # email_plaintext_message = render_to_string(
-    #     'email/user_reset_password.txt', context)
-
-    mail.send_mail(
-        # title:
-        "Password Reset for {title}".format(title="Delivery"),
-        # message:
-        f'Your Token is:{reset_password_token.key}',
-        # from:
-        settings.EMAIL_HOST_USER,
-        # to:
-        [reset_password_token.user.email],
-
-        fail_silently=False
-    )
+    send_whatsapp_message(context["message"], context["phone"])

@@ -63,13 +63,13 @@ class UserSignupSerializer(serializers.ModelSerializer):
 
 class UserLoginSerializer(serializers.Serializer):
 
-    email = serializers.CharField()
+    phone = serializers.CharField()
     password = serializers.CharField()
 
     def validate(self, data):
 
         # authenticate recibe las credenciales, si son válidas devuelve el objeto del usuario
-        user = authenticate(username=data['email'], password=data['password'])
+        user = authenticate(username=data['phone'], password=data['password'])
         if not user:
             raise serializers.ValidationError(
                 'Las credenciales no son válidas')
@@ -128,3 +128,7 @@ class UpdateUserSerializer(serializers.ModelSerializer):
                   'phone',
                   'image',
                   )
+
+
+class PhoneSerializer(serializers.Serializer):
+    phone = serializers.CharField()
