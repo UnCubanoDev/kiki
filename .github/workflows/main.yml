@@ -21,7 +21,7 @@ jobs:
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
             cd kiki
-            git clone https://github.com/TecnoNew365/kiki.git
+            git clone https://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@github.com/TecnoNew365/kiki.git
             cd kiki
             source venv/bin/activate
             pip install -r requirements.txt
