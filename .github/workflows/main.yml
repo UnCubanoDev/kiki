@@ -20,7 +20,8 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
-            cd rdlv
+            mkdir kiki
+            cd kiki
             git pull
             source venv/bin/activate
             pip install -r requirements.txt
