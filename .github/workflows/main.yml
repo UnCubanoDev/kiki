@@ -20,9 +20,9 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
-            mkdir kiki
             cd kiki
-            git pull
+            git clone https://github.com/TecnoNew365/kiki.git
+            cd kiki
             source venv/bin/activate
             pip install -r requirements.txt
             python manage.py migrate
