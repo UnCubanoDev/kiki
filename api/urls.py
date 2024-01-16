@@ -21,7 +21,7 @@ router.register(r'products', ProductViewSet)
 router.register(r'product-category', ProductCategoryViewSet)
 
 urlpatterns = [
-    path('metrics/', MetricsRetrieveAPIView.as_view(queryset=Metrics.get_solo()))
+    #path('metrics/', MetricsRetrieveAPIView.as_view(queryset=Metrics.get_solo()))
 ]
 
 urlpatterns += router.urls
