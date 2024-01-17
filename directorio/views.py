@@ -188,7 +188,6 @@ class ResetPasswordRequestToken(generics.GenericAPIView):
                     # yes, already has a token, re-use this token
                     token = user.password_reset_tokens.all()[0]
                 else:
-                    print("KKK -------------- LLL")
                     # no token exists, generate a new token
                     token = ResetPasswordToken.objects.create(
                         user=user,

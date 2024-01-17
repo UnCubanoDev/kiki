@@ -47,12 +47,11 @@ class User(AbstractUser):
     phone = models.CharField(
         max_length=25,
         validators=[phone_validator], unique=True)
-    email = models.EmailField(_('email address'), unique=True, blank=True, null=True)
+    email = models.EmailField(_('email address'), blank=True, null=True)
     image = models.ImageField(
         _("imagen"), upload_to='usuarios/', null=True, blank=True)
     USERNAME_FIELD = 'phone'
     REQUIRED_FIELDS = ['username']
-    is_active = models.BooleanField(_("active"), default=False)
 
     def __str__(self) -> str:
         return self.first_name or self.phone

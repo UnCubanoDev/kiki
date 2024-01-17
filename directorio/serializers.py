@@ -57,6 +57,7 @@ class UserSignupSerializer(serializers.ModelSerializer):
 
     def create(self, data):
         data.pop('passwd_conf')
+        data['is_active'] = False
         user = User.objects.create_user(**data)
         return user
 
