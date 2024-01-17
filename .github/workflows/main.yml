@@ -22,6 +22,8 @@ jobs:
           script: |
             cd kiki
             git pull
+            docker-compose up -d
+            docker exec -it kiki-db psql -U $SQL_USER -c "CREATE DATABASE $SQL_DATABASE;"
             source venv/bin/activate
             pip install -r requirements.txt
             python manage.py migrate
