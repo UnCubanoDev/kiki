@@ -21,7 +21,7 @@ jobs:
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
             cd kiki
-            git pull
+            git pull origin main
             docker-compose up -d
             docker exec -it kiki-db psql -U $SQL_USER -c "CREATE DATABASE $SQL_DATABASE;"
             source venv/bin/activate
