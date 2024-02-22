@@ -325,7 +325,13 @@ class MetricsRetrieveAPIView(generics.RetrieveAPIView):
 
 
 class ConfigurationApiView(views.APIView):
-    permission_classes = [IsAdminUser]
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            self.permission_classes = []
+        else:
+            self.permission_classes = [IsAdminUser]
+        return super(ConfigurationApiView, self).get_permissions()
     
     def get(self, request):
         config = Configuration.objects.get(pk=1)
