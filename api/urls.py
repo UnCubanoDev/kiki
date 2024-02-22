@@ -8,7 +8,8 @@ from .views import (
     DistributorViewSet,
     ProductViewSet,
     ProductCategoryViewSet,
-    MetricsRetrieveAPIView
+    MetricsRetrieveAPIView,
+    ConfigurationApiView
 )
 
 router = routers.DefaultRouter()
@@ -22,6 +23,7 @@ router.register(r'product-category', ProductCategoryViewSet)
 
 urlpatterns = [
     #path('metrics/', MetricsRetrieveAPIView.as_view(queryset=Metrics.get_solo()))
+    path('configuration/', ConfigurationApiView.as_view(), name='configuration_retrieve_update'),
 ]
 
 urlpatterns += router.urls

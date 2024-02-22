@@ -1,8 +1,9 @@
 from rest_framework import serializers
-from .models import (Restaurant, RestaurantRating, Category,
+from .models import (Restaurant, RestaurantRating, Category, Configuration, 
                      Distributor, Order, Product, ProductRating, OrderDetail, DistributorRating, ProductCategory, Metrics)
 from directorio.serializers import UserModelSerializer, AddressSerializer
 from directorio.models import User, Address
+from math import ceil
 
 
 class SuperClientsSerializer(serializers.Serializer):
@@ -91,6 +92,11 @@ class ProductSerializer(serializers.ModelSerializer):
             'amount',
             'rating',
         ]
+
+    def to_representation(self, instance):
+        res = super().to_representation(instance)
+        res["price"] = res["price"] + ceil(instance.restaurant.tax)
+        return res
 
 
 class ProductCategorySerializer(serializers.ModelSerializer):
@@ -246,3 +252,9 @@ class RestaurantMetricsSerializer(serializers.Serializer):
     total_month_tax = serializers.FloatField()
     total_month_gain_clean = serializers.FloatField()
     orders = RestaurantMetricsOrdersSerializer()
+
+
+class ConfigurationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Configuration
+        fields = '__all__'

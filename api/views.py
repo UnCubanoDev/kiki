@@ -2,19 +2,19 @@ from datetime import date
 from calendar import monthrange
 import math
 from django.db.models import Count
-from rest_framework import viewsets, status, generics
+from rest_framework import viewsets, status, generics, views
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from .permissions import IsDistributor, IsReadOnly, IsProductOwner, IsProvider, IsClientAndOrderOwner, IsOrderPending
 
-from .models import Restaurant, Order, Category, Distributor, Product, ProductCategory, Metrics, OrderDetail
+from .models import Restaurant, Order, Category, Distributor, Product, ProductCategory, Metrics, OrderDetail, Configuration
 from .serializers import (RestaurantSerializer, CategorySerializer,
                           OrderSerializer, DistributorSerializer, ProductSerializer,
                           ProductRatingSerializer, RestaurantRatingSerializer,
                           DistributorRatingSerializer, ProductCategorySerializer, MetricsSerializer,
-                          RestaurantMetricsSerializer
+                          RestaurantMetricsSerializer, ConfigurationSerializer
                           )
 
 from django.utils.decorators import method_decorator
@@ -322,3 +322,22 @@ class MetricsRetrieveAPIView(generics.RetrieveAPIView):
 
     def get_object(self):
         return Metrics.get_solo()
+
+
+class ConfigurationApiView(views.APIView):
+    permission_classes = [IsAdminUser]
+    
+    def get(self, request):
+        config = Configuration.objects.get(pk=1)
+        serializer = ConfigurationSerializer(config)
+        return Response(serializer.data)
+
+    def put(self, request):
+        config = Configuration.objects.get(pk=1)
+        serializer = ConfigurationSerializer(config, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
