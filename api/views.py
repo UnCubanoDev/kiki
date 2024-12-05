@@ -5,6 +5,10 @@ from django.db.models import Count
 from rest_framework import viewsets, status, generics, views
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
+from django.utils import timezone
+from datetime import time
+from django.utils.translation import gettext_lazy as _
 
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from .permissions import IsDistributor, IsReadOnly, IsProductOwner, IsProvider, IsClientAndOrderOwner, IsOrderPending
@@ -234,6 +238,14 @@ class OrderViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def perform_create(self, serializer):
+        current_time = timezone.localtime().time()
+        closing_time = time(23, 59)  # 11:59 PM
+        
+        if current_time >= closing_time:
+            raise ValidationError({
+                'detail': _('Lo sentimos, los negocios están cerrados después de las 11:59 PM')
+            })
+            
         serializer.save(user=self.request.user, status='pending')
 
 
@@ -258,51 +270,13 @@ class DistributorViewSet(viewsets.ModelViewSet):
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.filter(is_active=True)
+    queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [IsProvider | IsReadOnly | IsProductOwner]
-
-    @method_decorator(cache_page(30))
-    @method_decorator(vary_on_cookie)
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
-
-    def perform_create(self, serializer):
-        serializer.save(restaurant=Restaurant.objects.get(
-            user=self.request.user))
-
-    def perform_update(self, serializer):
-        instance = serializer.instance
-        original_product = Product.objects.get(pk=instance.pk)
-        old_price = original_product.price
-        old_pk = original_product.pk
-        serializer.save()
-        print(instance.price)
-        print(original_product.price)
-        if instance.price != original_product.price:
-            instance.pk = None
-            new = instance.save()
-            print(new)
-            old_product = Product.objects.get(pk=old_pk)
-            print(old_product)
-            old_product.is_active = False
-            old_product.price = old_price
-            old_product.save()
-        else:
-            serializer.save()
-
-    def perform_destroy(self, instance):
-        instance.is_active = False
-        instance.save()
-
-    @action(
-        detail=False,
-        methods=['post'],
-        permission_classes=[IsAuthenticated],
-        serializer_class=ProductRatingSerializer
-    )
-    def rate(self, request):
-        return super_rate(request, 'product', self.get_serializer, Product)
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
 
 class ProductCategoryViewSet(viewsets.ModelViewSet):

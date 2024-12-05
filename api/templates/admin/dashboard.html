@@ -1,0 +1,215 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static 'css/custom.css' %}">
+<style>
+  #content-main {
+      width: 100%;
+      max-width: 100%;
+      padding: 0;
+  }
+
+  .stats-container {
+      display: flex;
+      gap: 20px;
+      padding: 20px;
+      flex-wrap: wrap;
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+  }
+
+  .stats-card, .summary-card {
+      background: #303030;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      color: #fff;
+      flex: 1;
+      min-width: 250px;
+      text-align: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .stats-card:hover, .summary-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  }
+
+  .summary-card h3 {
+      color: #aaa;
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+  }
+
+  .summary-card p {
+      color: #00bc8c;
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin: 0;
+  }
+
+  .stats-card {
+      text-align: left;
+  }
+
+  .stats-card h2 {
+      color: #fff;
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+  }
+
+  .stats-card table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+  }
+
+  .stats-card th {
+      text-align: left;
+      padding: 12px;
+      border-bottom: 2px solid #444;
+      color: #aaa;
+      font-weight: 500;
+  }
+
+  .stats-card td {
+      padding: 12px;
+      border-bottom: 1px solid #444;
+  }
+
+  /* Ajuste para pantallas grandes */
+  @media (min-width: 1200px) {
+      .stats-container {
+          padding: 20px 40px;
+      }
+
+      .summary-card {
+          min-width: calc(25% - 60px);
+          flex: 0 0 calc(25% - 60px);
+      }
+
+      .stats-card {
+          min-width: calc(50% - 60px);
+          flex: 0 0 calc(50% - 60px);
+      }
+  }
+
+  /* Ajuste para pantallas medianas */
+  @media (max-width: 1199px) and (min-width: 768px) {
+      .summary-card {
+          min-width: calc(50% - 40px);
+          flex: 0 0 calc(50% - 40px);
+      }
+  }
+
+  /* Ajuste para pantallas pequeñas */
+  @media (max-width: 767px) {
+      .stats-container {
+          flex-direction: column;
+          padding: 10px;
+      }
+
+      .stats-card, .summary-card {
+          width: 100%;
+          min-width: 100%;
+      }
+
+      .stats-card table {
+          display: block;
+          overflow-x: auto;
+      }
+  }
+</style>
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<script src="{% static 'js/custom.js' %}"></script>
+{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+  &rsaquo; {% trans 'Dashboard' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <div class="stats-container">
+    <!-- Summary Cards -->
+    <div class="summary-card">
+      <h3>{% trans "Órdenes Pendientes" %}</h3>
+      <p>{{ pending_orders_count }}</p>
+    </div>
+    <div class="summary-card">
+      <h3>{% trans "Ventas del Día" %}</h3>
+      <p>${{ daily_sales|floatformat:2 }}</p>
+    </div>
+    <div class="summary-card">
+      <h3>{% trans "Ventas de la Semana" %}</h3>
+      <p>${{ weekly_sales|floatformat:2 }}</p>
+    </div>
+    <div class="summary-card">
+      <h3>{% trans "Ventas del Mes" %}</h3>
+      <p>${{ monthly_sales|floatformat:2 }}</p>
+    </div>
+  </div>
+
+  <div class="stats-container">
+    <!-- Top Restaurantes -->
+    <div class="stats-card">
+      <h2>{% trans "Restaurantes más Populares" %}</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Restaurante</th>
+            <th>Ventas Totales</th>
+            <th>Órdenes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for restaurant in top_restaurants %}
+          <tr>
+            <td>{{ restaurant.name }}</td>
+            <td>${{ restaurant.total_sales|floatformat:2 }}</td>
+            <td>{{ restaurant.total_orders }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Top Productos -->
+    <div class="stats-card">
+      <h2>{% trans "Productos más Vendidos" %}</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Cantidad Vendida</th>
+            <th>Ingresos</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for product in top_products %}
+          <tr>
+            <td>{{ product.name }}</td>
+            <td>{{ product.total_sold }}</td>
+            <td>${{ product.total_revenue|floatformat:2 }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

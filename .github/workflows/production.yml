@@ -1,0 +1,45 @@
+name: Producción
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v2
+
+      - name: Configurar Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: Instalar dependencias
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+
+      - name: Configurar variables de entorno
+        run: |
+          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> $GITHUB_ENV
+          echo "DEBUG=0" >> $GITHUB_ENV
+          echo "SQL_DATABASE=${{ secrets.SQL_DATABASE }}" >> $GITHUB_ENV
+          echo "SQL_USER=${{ secrets.SQL_USER }}" >> $GITHUB_ENV
+          echo "SQL_PASSWORD=${{ secrets.SQL_PASSWORD }}" >> $GITHUB_ENV
+          echo "SQL_HOST=${{ secrets.SQL_HOST }}" >> $GITHUB_ENV
+          echo "SQL_PORT=${{ secrets.SQL_PORT }}" >> $GITHUB_ENV
+
+      - name: Ejecutar migraciones
+        run: |
+          source venv/bin/activate
+          python manage.py migrate
+
+      - name: Ejecutar servidor de producción
+        run: |
+          source venv/bin/activate
+          gunicorn src.wsgi:application --bind 0.0.0.0:8000 

@@ -11,6 +11,7 @@ from .views import (
     MetricsRetrieveAPIView,
     ConfigurationApiView
 )
+from .admin_views import DashboardView
 
 router = routers.DefaultRouter()
 
@@ -24,6 +25,7 @@ router.register(r'product-category', ProductCategoryViewSet)
 urlpatterns = [
     #path('metrics/', MetricsRetrieveAPIView.as_view(queryset=Metrics.get_solo()))
     path('configuration/', ConfigurationApiView.as_view(), name='configuration_retrieve_update'),
+    path('admin/dashboard/', DashboardView.as_view(), name='admin_dashboard'),
 ]
 
 urlpatterns += router.urls

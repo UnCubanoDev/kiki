@@ -1,0 +1,65 @@
+{% extends 'admin/base.html' %} {% load static %} {% load i18n %} {% block
+branding %}
+<h1 id="site-name">
+  <a href="{% url 'admin:index' %}"
+    >{{ site_header|default:_('Django administration') }}</a
+  >
+</h1>
+{% endblock %} {% endif %} {% endblock %} {% block extrastyle %} {{ block.super
+}}
+<style>
+  .dashboard-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--header-link-color);
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+    margin-left: 10px;
+  }
+
+  .dashboard-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--header-link-color);
+  }
+
+  .dashboard-link i {
+    font-size: 1.1em;
+  }
+
+  #user-tools {
+    display: flex;
+    align-items: center;
+  }
+</style>
+{% endblock %} {% block extrahead %} {{ block.super }}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const ws_scheme = window.location.protocol == 'https:' ? 'wss' : 'ws';
+    const notificationSocket = new WebSocket(
+      ws_scheme + '://' + window.location.host + '/ws/notifications/'
+    );
+
+    notificationSocket.onmessage = function (e) {
+      const data = JSON.parse(e.data);
+      if (data.type === 'new_order') {
+        showOrderNotification(data);
+      }
+    };
+
+    function showOrderNotification(data) {
+      const orderDetails = `
+                <div class="order-notification">
+                    <p><strong>Orden #${data.data.id}</strong></p>
+                    <p>Cliente: ${data.data.customer}</p>
+                    <p>Total: $${data.data.total}</p>
+                    <p>Fecha: ${data.data.date}</p>
+                </div>
+            `;
+      // Aquí puedes implementar la lógica para mostrar la notificación
+    }
+  });
+</script>
+{% endblock %}

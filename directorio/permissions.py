@@ -1,6 +1,6 @@
 from rest_framework.permissions import BasePermission
 
-from directorio.models import User
+from api.models import User
 
 # class es_proveedor(BasePermission):
 

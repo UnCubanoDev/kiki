@@ -1,0 +1,45 @@
+name: Desarrollo
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v2
+
+      - name: Configurar Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: Instalar dependencias
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+
+      - name: Configurar variables de entorno
+        run: |
+          echo "SECRET_KEY=tu_secreto" >> $GITHUB_ENV
+          echo "DEBUG=1" >> $GITHUB_ENV
+          echo "SQL_DATABASE=kiki_dev" >> $GITHUB_ENV
+          echo "SQL_USER=postgres" >> $GITHUB_ENV
+          echo "SQL_PASSWORD=postgres" >> $GITHUB_ENV
+          echo "SQL_HOST=localhost" >> $GITHUB_ENV
+          echo "SQL_PORT=5432" >> $GITHUB_ENV
+
+      - name: Ejecutar migraciones
+        run: |
+          source venv/bin/activate
+          python manage.py migrate
+
+      - name: Ejecutar servidor de desarrollo
+        run: |
+          source venv/bin/activate
+          python manage.py runserver 

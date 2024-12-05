@@ -14,7 +14,7 @@ from directorio.serializers import UserLoginSerializer, UserModelSerializer, Upd
 from api.serializers import DistributorSerializer, RestaurantSerializer
 
 # Models
-from directorio.models import User, Address
+from directorio.models import Address
 from api.models import Distributor, Restaurant
 
 #RestorePassword
@@ -32,9 +32,22 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.sites.shortcuts import get_current_site
 
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+from notifications.signals import notify
+
+from django.shortcuts import render
+from django.utils.decorators import method_decorator
+from django.contrib.admin.views.decorators import staff_member_required
+from django.views.generic import TemplateView
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+from django.contrib.auth import get_user_model
 
 HTTP_USER_AGENT_HEADER = getattr(settings, 'DJANGO_REST_PASSWORDRESET_HTTP_USER_AGENT_HEADER', 'HTTP_USER_AGENT')
 HTTP_IP_ADDRESS_HEADER = getattr(settings, 'DJANGO_REST_PASSWORDRESET_IP_ADDRESS_HEADER', 'REMOTE_ADDR')
+
+User = get_user_model()
 
 class UserViewSet(viewsets.GenericViewSet, mixins.UpdateModelMixin, mixins.RetrieveModelMixin):
 
@@ -88,7 +101,7 @@ class SignupView(generics.GenericAPIView):
     def sendActivationLink(self, user):
         site = get_current_site(self.request)
         activation_url = f"http://{site.domain}/api/auth/activate/{urlsafe_base64_encode(force_bytes(user.pk))}/{default_token_generator.make_token(user)}"
-        message = f'\nPara activar tu cuenta, por favor haz clic en el siguiente enlace:\n{activation_url}'
+        message = f'\nPara activar su cuenta, por favor agregue nuestro contacto para que pueda hacer clic en el siguiente enlace:\n{activation_url}'
         send_whatsapp_message(message, user.phone[1:])
 
     def post(self, request):
@@ -217,6 +230,47 @@ def activate(request, uidb64, token):
     if user is not None and default_token_generator.check_token(user, token):
         user.is_active = True
         user.save()
-        return Response('La activación fue exitosa.', status=status.HTTP_200_OK)
+        return render(request, 'activation_success.html')
     else:
-        return Response('El enlace de activación es inválido.', status=status.HTTP_400_BAD_REQUEST)
+        return render(request, 'activation_failed.html')
+def home(request):
+    context = {
+        'page_title': 'Dashboard',
+        'content': 'Bienvenido a Kiki'
+    }
+    return render(request, 'tu_template.html', context)
+
+@method_decorator(staff_member_required, name='dispatch')
+class DashboardAdminView(LoginRequiredMixin, TemplateView):
+    template_name = 'admin/dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Asegúrate de que Usuario está definido o usa el modelo correcto
+        context['total_usuarios'] = User.objects.count()
+        
+        # Comenta o elimina la parte de actividades si no tienes ese modelo
+        # context['ultimas_actividades'] = Actividad.objects.select_related('usuario')\
+        #     .order_by('-fecha')[:10]
+        
+        return context
+
+def send_admin_notification(message):
+    # Enviar a través de WebSocket
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        "admin_notifications",
+        {
+            "type": "send_notification",
+            "message": message
+        }
+    )
+    
+    # Opcional: Guardar en la base de datos usando django-notifications-hq
+    notify.send(
+        sender=None,
+        recipient=User.objects.filter(is_staff=True),
+        verb='nueva_notificacion',
+        description=message
+    )

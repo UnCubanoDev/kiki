@@ -14,7 +14,7 @@ router.register(r'password_reset/confirm', ResetPasswordConfirmViewSet, basename
 urlpatterns = [
     path('', include(router.urls)),
     path('login/', LoginView.as_view(), name='auth_login'),
-    path('users/me', UserInfoView.as_view(), name='auth_info'),
+    path('users/me/', UserInfoView.as_view(), name='auth_info'),
     path('signup/', SignupView.as_view(), name='auth_signup'),
     path('change_password/', ChangePasswordView.as_view(), name='auth_chpass'),
     path('activate/<uidb64>/<token>/', activate, name='activate'),

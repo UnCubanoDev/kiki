@@ -1,0 +1,38 @@
+msgid "Admin"
+msgstr "Administración"
+
+msgid "Site administration"
+msgstr "Administración del sitio"
+
+msgid "Recent actions"
+msgstr "Acciones recientes"
+
+msgid "My actions"
+msgstr "Mis acciones"
+
+msgid "None available"
+msgstr "Ninguna disponible"
+
+msgid "Unknown content"
+msgstr "Contenido desconocido"
+
+msgid "Summary"
+msgstr "Resumen"
+
+msgid "Users"
+msgstr "Usuarios"
+
+msgid "Groups"
+msgstr "Grupos"
+
+msgid "Add"
+msgstr "Añadir"
+
+msgid "Change"
+msgstr "Modificar"
+
+msgid "Delete"
+msgstr "Eliminar"
+
+msgid "You don't have permission to view or edit anything."
+msgstr "No tienes permiso para ver o editar nada."

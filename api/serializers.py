@@ -1,9 +1,15 @@
 from rest_framework import serializers
+from django.contrib.auth import get_user_model
 from .models import (Restaurant, RestaurantRating, Category, Configuration, 
                      Distributor, Order, Product, ProductRating, OrderDetail, DistributorRating, ProductCategory, Metrics)
 from directorio.serializers import UserModelSerializer, AddressSerializer
-from directorio.models import User, Address
-from math import ceil
+from directorio.models import Address
+from .helpers import calculate_price
+from django.utils import timezone
+from datetime import time
+from django.utils.translation import gettext_lazy as _
+
+User = get_user_model()
 
 
 class SuperClientsSerializer(serializers.Serializer):
@@ -77,6 +83,8 @@ class ProductSerializer(serializers.ModelSerializer):
         slug_field='name', queryset=Category.objects.all())
 
     restaurant_id = serializers.PrimaryKeyRelatedField(read_only=True, source='restaurant')
+    price = serializers.SerializerMethodField()
+    currency = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -91,12 +99,26 @@ class ProductSerializer(serializers.ModelSerializer):
             'restaurant_id',
             'amount',
             'rating',
+            'currency',
         ]
 
-    def to_representation(self, instance):
-        res = super().to_representation(instance)
-        res["price"] = res["price"] + ceil(instance.restaurant.tax)
-        return res
+    def get_price(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return obj.price
+            
+        return calculate_price(
+            base_price=obj.price,
+            restaurant_tax=obj.restaurant.tax,
+            user=request.user
+        )
+
+    def get_currency(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return 'USD'
+            
+        return 'CUP' if request.user.phone.startswith('+53') else 'USD'
 
 
 class ProductCategorySerializer(serializers.ModelSerializer):
@@ -137,6 +159,7 @@ class RestaurantSerializer(serializers.ModelSerializer):
             'latitude',
             'longitude',
             'recommended',
+            'funds'
         ]
 
 
@@ -173,10 +196,14 @@ class BusinessOrderSerializer(serializers.Serializer):
 
 
 class OrderDetailSerializer(serializers.ModelSerializer):
-
+    final_price = serializers.SerializerMethodField()
+    
     class Meta:
         model = OrderDetail
-        fields = ['product', 'amount']
+        fields = ['id', 'product', 'quantity', 'unit_price', 'final_price']
+        
+    def get_final_price(self, obj):
+        return obj.get_final_price()
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -190,6 +217,8 @@ class OrderSerializer(serializers.ModelSerializer):
     distributor = DistributorSerializer(read_only=True)
     delivery_address = AddressSerializer(read_only=True)
     delivery_address_id = serializers.IntegerField(write_only=True)
+    details = OrderDetailSerializer(many=True, read_only=True)
+    total = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -209,6 +238,8 @@ class OrderSerializer(serializers.ModelSerializer):
             'business_orders',
             'status',
             'delivery_total_distance',
+            'details',
+            'total',
         ]
         read_only_fields = [
             'id',
@@ -228,16 +259,27 @@ class OrderSerializer(serializers.ModelSerializer):
                 order=order, product=order_detail['product'], amount=order_detail['amount'])
         return order
 
+    def get_total(self, obj):
+        return sum(detail.get_final_price() for detail in obj.orderdetail_set.all())
 
-class OrderDetailSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OrderDetail
-        fields = [
-            'id',
-            'order',
-            'product',
-            'amount',
-        ]
+    def validate(self, attrs):
+        current_time = timezone.localtime().time()
+        config = Configuration.objects.first()
+        
+        if not config:
+            return attrs
+            
+        if current_time >= config.business_closing_time or \
+           current_time < config.business_opening_time:
+            raise serializers.ValidationError(
+                _('Lo sentimos, los negocios están cerrados. '
+                  'Horario de atención: {opening} - {closing}').format(
+                    opening=config.business_opening_time.strftime('%H:%M'),
+                    closing=config.business_closing_time.strftime('%H:%M')
+                )
+            )
+            
+        return super().validate(attrs)
 
 
 class RestaurantMetricsOrdersSerializer(serializers.Serializer):

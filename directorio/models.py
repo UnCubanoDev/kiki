@@ -3,23 +3,34 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import RegexValidator
-
-from django.core import mail
-from django.dispatch import receiver
 from django.urls import reverse
 
-from django_rest_passwordreset.signals import reset_password_token_created
+Order = None
 
-from directorio.helper import send_whatsapp_message
+def get_order_model():
+    global Order
+    if Order is None:
+        from api.models import Order
+    return Order
 
 phone_validator = RegexValidator(
     r'^\+[1-9]\d{1,14}$', _('phone number in the format '))
 
-# Create your models here.
+class User(AbstractUser):
+    phone = models.CharField(
+        _("phone number"), 
+        max_length=18, 
+        validators=[phone_validator],
+        unique=True
+    )
+    image = models.ImageField(
+        _("imagen"), upload_to='usuarios/', null=True, blank=True)
+    email = models.EmailField(_("email address"), unique=True)
 
+    class Meta:
+        app_label = 'directorio'
 
 class Address(models.Model):
-
     name = models.CharField(_("name"), max_length=240)
     details = models.CharField(_("details"), max_length=240)
     long = models.CharField(_("longitude"), max_length=50)
@@ -28,7 +39,7 @@ class Address(models.Model):
         _("reciever name"), max_length=80, blank=True, null=True)
     phone = models.CharField(
         _("phone number"), max_length=18, blank=True, null=True)
-    user = models.ForeignKey("directorio.User", verbose_name=_(
+    user = models.ForeignKey(User, verbose_name=_(
         "user"), on_delete=models.CASCADE)
 
     class Meta:
@@ -41,36 +52,34 @@ class Address(models.Model):
     def get_absolute_url(self):
         return reverse("address_detail", kwargs={"pk": self.pk})
 
+class Order(models.Model):
+    user = models.ForeignKey(User, verbose_name=_("user"), on_delete=models.CASCADE)
+    address = models.ForeignKey(
+        Address, 
+        verbose_name=_("address"), 
+        on_delete=models.CASCADE,
+        related_name='directorio_orders'
+    )
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
+    status = models.CharField(
+        _("status"),
+        max_length=20,
+        choices=[
+            ('pending', _('Pending')),
+            ('in_progress', _('In Progress')),
+            ('completed', _('Completed')),
+            ('cancelled', _('Cancelled'))
+        ],
+        default='pending'
+    )
 
-class User(AbstractUser):
+    class Meta:
+        verbose_name = _("order")
+        verbose_name_plural = _("orders")
 
-    phone = models.CharField(
-        max_length=25,
-        validators=[phone_validator], unique=True)
-    email = models.EmailField(_('email address'), blank=True, null=True)
-    image = models.ImageField(
-        _("imagen"), upload_to='usuarios/', null=True, blank=True)
-    USERNAME_FIELD = 'phone'
-    REQUIRED_FIELDS = ['username']
+    def __str__(self):
+        return f"Order {self.id} - {self.user.username}"
 
-    def __str__(self) -> str:
-        return self.first_name or self.phone
-
-
-@receiver(reset_password_token_created)
-def password_reset_token_created(sender, instance, reset_password_token, *args, **kwargs):
-    """
-    Handles password reset tokens
-    When a token is created, an e-mail needs to be sent to the user
-    :param sender: View Class that sent the signal
-    :param instance: View Instance that sent the signal
-    :param reset_password_token: Token Model Object
-    :param args:
-    :param kwargs:
-    :return:
-    """
-    context = {
-        'phone': reset_password_token.user.phone[1:],
-        'message': f'This is your key\n{reset_password_token.key}'
-    }
-    send_whatsapp_message(context["message"], context["phone"])
+    def get_absolute_url(self):
+        return reverse("order_detail", kwargs={"pk": self.pk})

@@ -1,12 +1,23 @@
 import math
+from django.conf import settings
 from django.db import models
 from django.db.models import Avg, Count
 from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from directorio.helper import send_whatsapp_message
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.core.exceptions import ValidationError
+import logging
+import requests
+from requests.exceptions import RequestException
+from django.utils import timezone
+from datetime import time
 
 from solo.models import SingletonModel
+from .helpers import calculate_price
 
 phone_validator = RegexValidator(
     ' ^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$ ', _('phone must be in format'))
@@ -21,6 +32,8 @@ ORDER_STATUS_CHOICES = [
     ("canceled", "canceled"),
 ]
 
+logger = logging.getLogger(__name__)
+
 
 class Configuration(SingletonModel):
 
@@ -28,6 +41,14 @@ class Configuration(SingletonModel):
     distributor_gain = models.FloatField(_("distributor gain"), default=0)
     delivery_distance_price = models.IntegerField(_("delivery distance price"), default=0)
     delivery_fixed_price = models.IntegerField(_("delivery fixed price"), default=300)
+    business_closing_time = models.TimeField(
+        _("business closing time"),
+        default=time(23, 59)
+    )
+    business_opening_time = models.TimeField(
+        _("business opening time"),
+        default=time(8, 0)
+    )
 
     class Meta:
         verbose_name = _("configuration")
@@ -91,7 +112,7 @@ class Restaurant(models.Model):
     image = models.ImageField(
         _("image"), upload_to='restaurants', null=True, blank=True)
     user = models.ForeignKey(
-        get_user_model(), verbose_name=_("user"), on_delete=models.CASCADE)
+        settings.AUTH_USER_MODEL, verbose_name=_("user"), on_delete=models.CASCADE)
     time = models.CharField(_("time"), max_length=10)
     bussiness_type = models.ManyToManyField(
         "api.Category", verbose_name=_("Business type"))
@@ -100,6 +121,7 @@ class Restaurant(models.Model):
     latitude = models.CharField(_("latitude"), max_length=25, default='')
     longitude = models.CharField(_("longitude"), max_length=25, default='')
     recommended = models.BooleanField(_("recommended"), default=False)
+    funds = models.DecimalField(_("funds"), max_digits=10, decimal_places=2, default=0)
 
     @property
     def categories_product(self):
@@ -200,7 +222,7 @@ class Distributor(models.Model):
         verbose_name_plural = _("distributors")
 
     def __str__(self):
-        return self.user.first_name or self.user.email
+        return f"{self.user.get_full_name() or self.user.username}"
 
     def get_absolute_url(self):
         return reverse("distributor_detail", kwargs={"pk": self.pk})
@@ -245,7 +267,7 @@ class Product(models.Model):
 
     name = models.CharField(_("name"), max_length=50)
     description = models.TextField(_("description"))
-    price = models.DecimalField(_("price"), max_digits=6, decimal_places=2)
+    price = models.DecimalField(_("price"), max_digits=8, decimal_places=2)
     time = models.CharField(_("time of preparation"), max_length=10)
     image = models.ImageField(
         _("image"), upload_to='products/', null=True, blank=True)
@@ -304,14 +326,21 @@ class ProductRating(models.Model):
 
 class Order(models.Model):
 
-    user = models.ForeignKey(get_user_model(), verbose_name=_(
-        "user"), on_delete=models.DO_NOTHING)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE,
+        related_name='api_orders'
+    )
     distributor = models.ForeignKey("api.Distributor", verbose_name=_(
         "distributor"), on_delete=models.DO_NOTHING, null=True, blank=True)
     date = models.DateField(_("date"), auto_now=True)
     time = models.TimeField(_("time"), auto_now=True)
     delivery_address = models.ForeignKey(
-        "directorio.Address", verbose_name=_("delivery address"), on_delete=models.PROTECT)
+        "directorio.Address", 
+        verbose_name=_("delivery address"), 
+        on_delete=models.PROTECT,
+        related_name='api_orders'
+    )
     status = models.CharField(
         _("status"), max_length=15, choices=ORDER_STATUS_CHOICES)
     pay_type = models.CharField(_("pay_type"), max_length=25)
@@ -325,7 +354,10 @@ class Order(models.Model):
 
     @property
     def sub_total(self):
-        return sum([float(order_detail.product.price) * order_detail.amount for order_detail in self.products.all()])
+        return sum([
+            float(order_detail.unit_price) * order_detail.quantity 
+            for order_detail in self.products.all()
+        ])
 
     @property
     def delivery_price(self):
@@ -338,7 +370,7 @@ class Order(models.Model):
     def business_orders(self):
         products = [{
             'detail': detail.product,
-            'amount': detail.amount
+            'quantity': detail.quantity
         } for detail in self.orderdetail_set.all()]
 
         return [{
@@ -358,29 +390,102 @@ class Order(models.Model):
         verbose_name_plural = _("orders")
 
     def __str__(self):
-        return str(self.user)
+        return f"Orden #{self.id} - {self.user}"
 
     def get_absolute_url(self):
         return reverse("order_detail", kwargs={"pk": self.pk})
 
+    def save(self, *args, **kwargs):
+        if self.pk:
+            old_order = Order.objects.get(pk=self.pk)
+            if old_order.status != self.status and self.status == 'delivered':
+                self._update_restaurant_funds()
+            if old_order.status != self.status:
+                try:
+                    self._send_status_notification()
+                except RequestException as e:
+                    logger.error(f"Error al enviar notificación WhatsApp: {str(e)}")
+                    # Continuar con el guardado aunque falle la notificación
+        super().save(*args, **kwargs)
+
+    def _update_restaurant_funds(self):
+        """Actualiza los fondos de los restaurantes cuando la orden se completa"""
+        for detail in self.orderdetail_set.all():
+            restaurant = detail.product.restaurant
+            # Usa el precio histórico almacenado
+            amount_to_deduct = float(detail.unit_price) * detail.quantity
+            
+            if float(restaurant.funds) < amount_to_deduct:
+                raise ValueError(
+                    f"El restaurante {restaurant.name} no tiene fondos suficientes"
+                )
+            
+            restaurant.funds = float(restaurant.funds) - amount_to_deduct
+            restaurant.save()
+
+    def _send_status_notification(self):
+        try:
+            client_message = f'Tu orden #{self.id} ha cambiado de estado a: {self.status}'
+            send_whatsapp_message(client_message, self.user.phone)
+        except RequestException as e:
+            logger.error(f"Error en la conexión WhatsApp para orden {self.id}: {str(e)}")
+            # No relanzar la excepción para permitir que la orden se guarde
+
 
 class OrderDetail(models.Model):
 
-    order = models.ForeignKey("api.Order", verbose_name=_(
-        "order"), on_delete=models.CASCADE)
-    product = models.ForeignKey("api.Product", verbose_name=_(
-        "product"), on_delete=models.DO_NOTHING)
-    amount = models.IntegerField(_("amount"), validators=[min_rating])
-    was_paid_by_business = models.BooleanField(
-        _("was paid by business"), default=False)
+    order = models.ForeignKey(
+        Order, 
+        on_delete=models.CASCADE,
+        related_name='products'
+    )
+    product = models.ForeignKey(
+        'Product', 
+        on_delete=models.PROTECT
+    )
+    quantity = models.PositiveIntegerField(
+        _("quantity"),
+        default=1  # Valor por defecto para registros existentes
+    )
+    # Campos para mantener precios históricos
+    unit_price = models.DecimalField(
+        _("unit price"),
+        max_digits=10, 
+        decimal_places=2,
+        null=True,
+        default=0  # Valor por defecto
+    )
+    tax_rate = models.DecimalField(
+        _("tax rate"),
+        max_digits=5, 
+        decimal_places=2,
+        null=True,
+        default=0  # Valor por defecto
+    )
+    exchange_rate = models.DecimalField(
+        _("exchange rate"),
+        max_digits=10, 
+        decimal_places=2,
+        null=True,
+        default=1  # Valor por defecto
+    )
 
-    @property
-    def business(self):
-        return self.product.restaurant
+    def save(self, *args, **kwargs):
+        if not self.pk:  # Solo si es nuevo
+            config = Configuration.objects.first()
+            self.unit_price = self.product.price
+            self.tax_rate = self.product.restaurant.tax
+            self.exchange_rate = config.exchange_rate if config else 1
+        super().save(*args, **kwargs)
 
-    @property
-    def price(self):
-        return self.product.price * self.amount
+    def get_final_price(self):
+        if self.unit_price is None:
+            return 0
+            
+        base_price = float(self.unit_price) * (1 + (float(self.tax_rate or 0) / 100))
+        if self.order.user.phone.startswith('+53'):
+            return round(base_price * self.quantity, 2)
+        return round((base_price / float(self.exchange_rate or 1)) * self.quantity, 2)
 
     class Meta:
         verbose_name = _("order detail")
