@@ -233,11 +233,22 @@ def activate(request, uidb64, token):
         return render(request, 'activation_success.html')
     else:
         return render(request, 'activation_failed.html')
+
+def get_sidebar_data():
+    # Aquí obtienes los datos necesarios para el sidebar
+    total_usuarios = User.objects.count()
+    # Agrega más datos si es necesario
+    return {
+        'total_usuarios': total_usuarios,
+        # Otros datos
+    }
+
 def home(request):
-    context = {
+    context = get_sidebar_data()
+    context.update({
         'page_title': 'Dashboard',
         'content': 'Bienvenido a Kiki'
-    }
+    })
     return render(request, 'tu_template.html', context)
 
 @method_decorator(staff_member_required, name='dispatch')
@@ -246,14 +257,8 @@ class DashboardAdminView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        
-        # Asegúrate de que Usuario está definido o usa el modelo correcto
-        context['total_usuarios'] = User.objects.count()
-        
-        # Comenta o elimina la parte de actividades si no tienes ese modelo
-        # context['ultimas_actividades'] = Actividad.objects.select_related('usuario')\
-        #     .order_by('-fecha')[:10]
-        
+        context.update(get_sidebar_data())
+        # Agrega más lógica para el contexto del dashboard si es necesario
         return context
 
 def send_admin_notification(message):
@@ -274,3 +279,6 @@ def send_admin_notification(message):
         verb='nueva_notificacion',
         description=message
     )
+
+def landing_page(request):
+    return render(request, 'landing_page.html')

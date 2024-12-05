@@ -24,22 +24,16 @@ jobs:
           source venv/bin/activate
           pip install -r requirements.txt
 
-      - name: Configurar variables de entorno
-        run: |
-          echo "SECRET_KEY=tu_secreto" >> $GITHUB_ENV
-          echo "DEBUG=1" >> $GITHUB_ENV
-          echo "SQL_DATABASE=kiki_dev" >> $GITHUB_ENV
-          echo "SQL_USER=postgres" >> $GITHUB_ENV
-          echo "SQL_PASSWORD=postgres" >> $GITHUB_ENV
-          echo "SQL_HOST=localhost" >> $GITHUB_ENV
-          echo "SQL_PORT=5432" >> $GITHUB_ENV
-
-      - name: Ejecutar migraciones
-        run: |
-          source venv/bin/activate
-          python manage.py migrate
-
-      - name: Ejecutar servidor de desarrollo
-        run: |
-          source venv/bin/activate
-          python manage.py runserver 
+      - name: Desplegar en VPS
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /ruta/a/tu/proyecto
+            git pull origin develop
+            source venv/bin/activate
+            pip install -r requirements.txt
+            python manage.py migrate
+            sudo systemctl restart myapp.service

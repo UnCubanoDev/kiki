@@ -24,22 +24,16 @@ jobs:
           source venv/bin/activate
           pip install -r requirements.txt
 
-      - name: Configurar variables de entorno
-        run: |
-          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> $GITHUB_ENV
-          echo "DEBUG=0" >> $GITHUB_ENV
-          echo "SQL_DATABASE=${{ secrets.SQL_DATABASE }}" >> $GITHUB_ENV
-          echo "SQL_USER=${{ secrets.SQL_USER }}" >> $GITHUB_ENV
-          echo "SQL_PASSWORD=${{ secrets.SQL_PASSWORD }}" >> $GITHUB_ENV
-          echo "SQL_HOST=${{ secrets.SQL_HOST }}" >> $GITHUB_ENV
-          echo "SQL_PORT=${{ secrets.SQL_PORT }}" >> $GITHUB_ENV
-
-      - name: Ejecutar migraciones
-        run: |
-          source venv/bin/activate
-          python manage.py migrate
-
-      - name: Ejecutar servidor de producción
-        run: |
-          source venv/bin/activate
-          gunicorn src.wsgi:application --bind 0.0.0.0:8000 
+      - name: Desplegar en VPS
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /ruta/a/tu/proyecto
+            git pull origin main
+            source venv/bin/activate
+            pip install -r requirements.txt
+            python manage.py migrate
+            sudo systemctl restart myapp.service

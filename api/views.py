@@ -9,6 +9,7 @@ from rest_framework.exceptions import ValidationError
 from django.utils import timezone
 from datetime import time
 from django.utils.translation import gettext_lazy as _
+from django.views.generic import TemplateView
 
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from .permissions import IsDistributor, IsReadOnly, IsProductOwner, IsProvider, IsClientAndOrderOwner, IsOrderPending
@@ -24,6 +25,9 @@ from .serializers import (RestaurantSerializer, CategorySerializer,
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_cookie, vary_on_headers
+
+from django.shortcuts import render
+from django.contrib.admin.views.decorators import staff_member_required
 
 
 def super_rate(request, instance, serializer, model):
@@ -319,5 +323,15 @@ class ConfigurationApiView(views.APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@method_decorator(staff_member_required, name='dispatch')
+class DashboardView(TemplateView):
+    template_name = 'admin/dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Aquí puedes agregar más lógica para el contexto
+        return context
 
 

@@ -410,7 +410,7 @@ class Order(models.Model):
 
     def _update_restaurant_funds(self):
         """Actualiza los fondos de los restaurantes cuando la orden se completa"""
-        for detail in self.orderdetail_set.all():
+        for detail in self.products.all():
             restaurant = detail.product.restaurant
             # Usa el precio histórico almacenado
             amount_to_deduct = float(detail.unit_price) * detail.quantity
