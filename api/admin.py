@@ -34,7 +34,21 @@ class RestaurantAdmin(admin.ModelAdmin):
         'phone',
         'is_active',
         'funds',
-        'tax'
+        'tax',
+        'monday_opening_time',
+        'monday_closing_time',
+        'tuesday_opening_time',
+        'tuesday_closing_time',
+        'wednesday_opening_time',
+        'wednesday_closing_time',
+        'thursday_opening_time',
+        'thursday_closing_time',
+        'friday_opening_time',
+        'friday_closing_time',
+        'saturday_opening_time',
+        'saturday_closing_time',
+        'sunday_opening_time',
+        'sunday_closing_time',
     ]
     list_filter = ['is_active']
     search_fields = ['name', 'user__username', 'phone']
@@ -65,30 +79,26 @@ class DistributorRatingAdmin(admin.ModelAdmin):
 class OrderDetailInline(admin.TabularInline):
     model = OrderDetail
     extra = 0
-    readonly_fields = ['get_final_price']
-    fields = ['product', 'quantity', 'get_final_price']
+    readonly_fields = ['product', 'quantity', 'get_final_price', 'restaurant']
+    fields = ['product', 'quantity', 'get_final_price', 'restaurant']
 
     def get_final_price(self, obj):
-        if obj.id:
-            return obj.get_final_price()
-        return 0
-    get_final_price.short_description = _("Precio Final")
+        return obj.get_final_price()  # Asegúrate de que este método exista en OrderDetail
+
+    def save_related(self, request, form, change):
+        super().save_related(request, form, change)
+        for order_detail in form.instance.products.all():
+            if not order_detail.unit_price:  # Solo si el precio no está establecido
+                order_detail.unit_price = order_detail.product.price
+                order_detail.save()
 
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = [
         'user',
-        'date',
-        'time',
-        'distributor',
-        'delivery_address',
         'status',
-        'pay_type',
-        'get_sub_total',
-        'delivery_price',
-        'total_price',
-        'was_paid_by_distributor',
+        'note',
     ]
     inlines = [OrderDetailInline]
 
@@ -154,6 +164,14 @@ class ProductAdmin(admin.ModelAdmin):
         'is_active',
     ]
     list_filter = ['is_active']
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "category":
+            if request.GET.get('restaurant'):
+                kwargs["queryset"] = ProductCategory.objects.filter(business_id=request.GET.get('restaurant'))
+            else:
+                kwargs["queryset"] = ProductCategory.objects.none()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 @admin.register(RestaurantRating)

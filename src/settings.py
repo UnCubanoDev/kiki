@@ -171,13 +171,13 @@ JAZZMIN_SETTINGS = {
     "welcome_sign": "Bienvenido al Panel de Control",
     
     # Configuración del Dashboard
-    "custom_css": "css/custom.css",
-    "custom_js": "js/custom.js",
+    # "custom_css": "css/custom.css",
+    # "custom_js": "js/custom.js",
 
     "changeform_format": "single",
     
     # Configuración del menú
-    "order_with_respect_to": ["auth", "api"],
+    # "order_with_respect_to": ["auth", "api"],
     
     # Configuración de la navegación
     "icons": {
@@ -200,7 +200,7 @@ JAZZMIN_SETTINGS = {
             "url": "admin_dashboard", 
             "icon": "fas fa-chart-line",
             "permissions": ["auth.view_user"]
-        }
+        },
     ],
     
     "custom_links": {
@@ -239,7 +239,7 @@ JAZZMIN_UI_TWEAKS = {
     "sidebar_nav_legacy_style": False,
     "sidebar_nav_flat_style": False,
     "theme": "cyborg",
-    "dark_mode_theme": "superhero",
+    "dark_mode_theme": "darkly",
     "button_classes": {
         "primary": "btn-primary",
         "secondary": "btn-secondary",

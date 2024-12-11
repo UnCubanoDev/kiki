@@ -8,6 +8,7 @@ from .helpers import calculate_price
 from django.utils import timezone
 from datetime import time
 from django.utils.translation import gettext_lazy as _
+import math
 
 User = get_user_model()
 
@@ -85,6 +86,7 @@ class ProductSerializer(serializers.ModelSerializer):
     restaurant_id = serializers.PrimaryKeyRelatedField(read_only=True, source='restaurant')
     price = serializers.SerializerMethodField()
     currency = serializers.SerializerMethodField()
+    final_price = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -93,6 +95,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'name',
             'description',
             'price',
+            'thermopack_price',
             'time',
             'image',
             'category',
@@ -100,6 +103,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'amount',
             'rating',
             'currency',
+            'final_price',
         ]
 
     def get_price(self, obj):
@@ -107,11 +111,11 @@ class ProductSerializer(serializers.ModelSerializer):
         if not request or not request.user.is_authenticated:
             return obj.price
             
-        return calculate_price(
+        return math.ceil(calculate_price(
             base_price=obj.price,
             restaurant_tax=obj.restaurant.tax,
             user=request.user
-        )
+        ))  # Redondear hacia arriba
 
     def get_currency(self, obj):
         request = self.context.get('request')
@@ -119,6 +123,17 @@ class ProductSerializer(serializers.ModelSerializer):
             return 'USD'
             
         return 'CUP' if request.user.phone.startswith('+53') else 'USD'
+
+    def get_final_price(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return obj.price + obj.thermopack_price
+            
+        return math.ceil(calculate_price(
+            base_price=obj.price + obj.thermopack_price,
+            restaurant_tax=obj.restaurant.tax,
+            user=request.user
+        ))  # Redondear hacia arriba
 
 
 class ProductCategorySerializer(serializers.ModelSerializer):
@@ -137,6 +152,7 @@ class RestaurantSerializer(serializers.ModelSerializer):
         slug_field='name', queryset=Category.objects.all(), many=True)
     categories_product = serializers.SlugRelatedField(
         slug_field='name', queryset=ProductCategory.objects.all(), many=True)
+    time_with_delivery = serializers.SerializerMethodField()
 
     def save(self, **kwargs):
         return super().save(**kwargs)
@@ -159,8 +175,15 @@ class RestaurantSerializer(serializers.ModelSerializer):
             'latitude',
             'longitude',
             'recommended',
-            'funds'
+            'funds',
+            'time_with_delivery'
         ]
+
+    def get_time_with_delivery(self, obj):
+        config = Configuration.objects.first()
+        delivery_time = config.delivery_time if config else 0
+        total_time = obj.time + delivery_time
+        return total_time
 
 
 class OrderProductDetailSerializer(serializers.ModelSerializer):
@@ -240,6 +263,9 @@ class OrderSerializer(serializers.ModelSerializer):
             'delivery_total_distance',
             'details',
             'total',
+            'note',
+            'created_at',
+            'updated_at'
         ]
         read_only_fields = [
             'id',
@@ -253,10 +279,16 @@ class OrderSerializer(serializers.ModelSerializer):
         products_data = validated_data.pop('products')
         delivery_address = validated_data.pop('delivery_address_id')
         delivery_address = Address.objects.get(pk=delivery_address)
-        order = Order.objects.create(delivery_address= delivery_address, **validated_data)
+        order = Order.objects.create(delivery_address=delivery_address, **validated_data)
+        
         for order_detail in products_data:
             OrderDetail.objects.create(
-                order=order, product=order_detail['product'], amount=order_detail['amount'])
+                order=order,
+                product=order_detail['product'],
+                quantity=order_detail['quantity'],
+                amount=order_detail['amount'],
+                unit_price=order_detail['product'].price
+            )
         return order
 
     def get_total(self, obj):

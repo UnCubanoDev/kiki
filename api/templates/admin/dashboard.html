@@ -1,11 +1,5 @@
 {% extends "admin/base_site.html" %} {% load static %} {% load i18n %} {% block
-extrastyle %} {{ block.super }}
-<link
-  rel="stylesheet"
-  type="text/css"
-  href="{% static 'css/custom.css' %}"
-/>
-{% block extrastyle %}
+extrastyle %} {{ block.super }} {% block extrastyle %}
 <style>
   #content-main {
     width: 100%;
@@ -130,8 +124,6 @@ extrastyle %} {{ block.super }}
     }
   }
 </style>
-{% endblock %} {% block extrahead %} {{ block.super }}
-<script src="{% static 'js/custom.js' %}"></script>
 {% endblock %} {% block coltype %}colMS{% endblock %} {% block bodyclass %}{{
 block.super }} dashboard{% endblock %} {% block breadcrumbs %}
 <div class="breadcrumbs">

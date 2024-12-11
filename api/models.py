@@ -49,6 +49,7 @@ class Configuration(SingletonModel):
         _("business opening time"),
         default=time(8, 0)
     )
+    delivery_time = models.IntegerField(_("delivery time (minutes)"), default=30)
 
     class Meta:
         verbose_name = _("configuration")
@@ -113,15 +114,27 @@ class Restaurant(models.Model):
         _("image"), upload_to='restaurants', null=True, blank=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_("user"), on_delete=models.CASCADE)
-    time = models.CharField(_("time"), max_length=10)
-    bussiness_type = models.ManyToManyField(
-        "api.Category", verbose_name=_("Business type"))
     is_active = models.BooleanField(_("is active"), default=True)
     tax = models.FloatField(_("tax"), default=10)
     latitude = models.CharField(_("latitude"), max_length=25, default='')
     longitude = models.CharField(_("longitude"), max_length=25, default='')
     recommended = models.BooleanField(_("recommended"), default=False)
     funds = models.DecimalField(_("funds"), max_digits=10, decimal_places=2, default=0)
+    monday_opening_time = models.TimeField(_("Monday Opening Time"), default=time(8, 0))
+    monday_closing_time = models.TimeField(_("Monday Closing Time"), default=time(23, 59))
+    tuesday_opening_time = models.TimeField(_("Tuesday Opening Time"), default=time(8, 0))
+    tuesday_closing_time = models.TimeField(_("Tuesday Closing Time"), default=time(23, 59))
+    wednesday_opening_time = models.TimeField(_("Wednesday Opening Time"), default=time(8, 0))
+    wednesday_closing_time = models.TimeField(_("Wednesday Closing Time"), default=time(23, 59))
+    thursday_opening_time = models.TimeField(_("Thursday Opening Time"), default=time(8, 0))
+    thursday_closing_time = models.TimeField(_("Thursday Closing Time"), default=time(23, 59))
+    friday_opening_time = models.TimeField(_("Friday Opening Time"), default=time(8, 0))
+    friday_closing_time = models.TimeField(_("Friday Closing Time"), default=time(23, 59))
+    saturday_opening_time = models.TimeField(_("Saturday Opening Time"), default=time(8, 0))
+    saturday_closing_time = models.TimeField(_("Saturday Closing Time"), default=time(23, 59))
+    sunday_opening_time = models.TimeField(_("Sunday Opening Time"), default=time(8, 0))
+    sunday_closing_time = models.TimeField(_("Sunday Closing Time"), default=time(23, 59))
+    time = models.IntegerField(_("time"), default=0)
 
     @property
     def categories_product(self):
@@ -284,6 +297,7 @@ class Product(models.Model):
     um = models.CharField(_("unit of measurement"), max_length=10)
     amount = models.IntegerField(_("amount"))
     is_active = models.BooleanField(_("is active"), default=True)
+    thermopack_price = models.DecimalField(_("thermopack price"), max_digits=10, decimal_places=2, default=0)
 
     class Meta:
         verbose_name = _("product")
@@ -333,7 +347,7 @@ class Order(models.Model):
     )
     distributor = models.ForeignKey("api.Distributor", verbose_name=_(
         "distributor"), on_delete=models.DO_NOTHING, null=True, blank=True)
-    date = models.DateField(_("date"), auto_now=True)
+    date = models.DateTimeField(auto_now_add=True)
     time = models.TimeField(_("time"), auto_now=True)
     delivery_address = models.ForeignKey(
         "directorio.Address", 
@@ -347,6 +361,7 @@ class Order(models.Model):
     was_paid_by_distributor = models.BooleanField(
         _("was paid by distributor"),  default=False)
     delivery_total_distance = models.IntegerField(_("delivery total distance"))
+    note = models.TextField(_("note"), blank=True, null=True)
 
     @property
     def total_price(self):
@@ -445,47 +460,48 @@ class OrderDetail(models.Model):
     )
     quantity = models.PositiveIntegerField(
         _("quantity"),
-        default=1  # Valor por defecto para registros existentes
+        default=1
     )
-    # Campos para mantener precios históricos
     unit_price = models.DecimalField(
         _("unit price"),
         max_digits=10, 
         decimal_places=2,
         null=True,
-        default=0  # Valor por defecto
+        default=0
     )
     tax_rate = models.DecimalField(
         _("tax rate"),
         max_digits=5, 
         decimal_places=2,
         null=True,
-        default=0  # Valor por defecto
+        default=0
     )
     exchange_rate = models.DecimalField(
         _("exchange rate"),
         max_digits=10, 
         decimal_places=2,
         null=True,
-        default=1  # Valor por defecto
+        default=1
+    )
+    restaurant = models.ForeignKey(
+        'Restaurant', 
+        on_delete=models.PROTECT,
+        related_name='order_details'
     )
 
     def save(self, *args, **kwargs):
         if not self.pk:  # Solo si es nuevo
-            config = Configuration.objects.first()
-            self.unit_price = self.product.price
+            self.unit_price = self.product.price  # Establecer el unit_price al precio del producto
             self.tax_rate = self.product.restaurant.tax
+            config = Configuration.objects.first()
             self.exchange_rate = config.exchange_rate if config else 1
         super().save(*args, **kwargs)
 
     def get_final_price(self):
-        if self.unit_price is None:
-            return 0
-            
-        base_price = float(self.unit_price) * (1 + (float(self.tax_rate or 0) / 100))
+        base_price = float(self.product.price) * (1 + (float(self.tax_rate or 0) / 100))
         if self.order.user.phone.startswith('+53'):
-            return round(base_price * self.quantity, 2)
-        return round((base_price / float(self.exchange_rate or 1)) * self.quantity, 2)
+            return math.ceil(base_price * self.quantity)
+        return math.ceil((base_price / float(self.exchange_rate or 1)) * self.quantity)
 
     class Meta:
         verbose_name = _("order detail")
@@ -496,3 +512,4 @@ class OrderDetail(models.Model):
 
     def get_absolute_url(self):
         return reverse("orderdetail_detail", kwargs={"pk": self.pk})
+
