@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'django_rest_passwordreset',
     'django_cleanup.apps.CleanupConfig',
     'drf_yasg',
+    'rest_framework',
+    'rest_framework.authtoken',
 ]
 
 
