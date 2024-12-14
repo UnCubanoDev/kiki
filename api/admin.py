@@ -34,25 +34,14 @@ class RestaurantAdmin(admin.ModelAdmin):
         'phone',
         'is_active',
         'funds',
-        'tax',
-        'monday_opening_time',
-        'monday_closing_time',
-        'tuesday_opening_time',
-        'tuesday_closing_time',
-        'wednesday_opening_time',
-        'wednesday_closing_time',
-        'thursday_opening_time',
-        'thursday_closing_time',
-        'friday_opening_time',
-        'friday_closing_time',
-        'saturday_opening_time',
-        'saturday_closing_time',
-        'sunday_opening_time',
-        'sunday_closing_time',
-        'business_type',
+        'display_business_type',
     ]
-    list_filter = ['is_active', 'business_type']
+    list_filter = ['is_active']
     search_fields = ['name', 'user__username', 'phone']
+
+    def display_business_type(self, obj):
+        return ", ".join([category.name for category in obj.business_type.all()])
+    display_business_type.short_description = 'Business Type'
 
 
 @admin.register(Category)
