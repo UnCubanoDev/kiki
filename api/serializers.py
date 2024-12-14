@@ -148,7 +148,7 @@ class RestaurantSerializer(serializers.ModelSerializer):
 
     user = UserModelSerializer()
     products = ProductSerializer(many=True)
-    bussiness_type = serializers.SlugRelatedField(
+    business_type = serializers.SlugRelatedField(
         slug_field='name', queryset=Category.objects.all(), many=True)
     categories_product = serializers.SlugRelatedField(
         slug_field='name', queryset=ProductCategory.objects.all(), many=True)
@@ -170,7 +170,7 @@ class RestaurantSerializer(serializers.ModelSerializer):
             'time',
             'rating',
             'products',
-            'bussiness_type',
+            'business_type',
             'categories_product',
             'latitude',
             'longitude',
