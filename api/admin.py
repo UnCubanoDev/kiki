@@ -49,8 +49,9 @@ class RestaurantAdmin(admin.ModelAdmin):
         'saturday_closing_time',
         'sunday_opening_time',
         'sunday_closing_time',
+        'business_type',
     ]
-    list_filter = ['is_active']
+    list_filter = ['is_active', 'business_type']
     search_fields = ['name', 'user__username', 'phone']
 
 

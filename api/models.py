@@ -135,6 +135,7 @@ class Restaurant(models.Model):
     sunday_opening_time = models.TimeField(_("Sunday Opening Time"), default=time(8, 0))
     sunday_closing_time = models.TimeField(_("Sunday Closing Time"), default=time(23, 59))
     time = models.IntegerField(_("time"), default=0)
+    business_type = models.ManyToManyField('Category', verbose_name=_("Business Type"))
 
     @property
     def categories_product(self):
