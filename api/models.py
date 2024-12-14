@@ -347,6 +347,7 @@ class Order(models.Model):
     )
     distributor = models.ForeignKey("api.Distributor", verbose_name=_(
         "distributor"), on_delete=models.DO_NOTHING, null=True, blank=True)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     date = models.DateTimeField(auto_now_add=True)
     time = models.TimeField(_("time"), auto_now=True)
     delivery_address = models.ForeignKey(

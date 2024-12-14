@@ -6,34 +6,25 @@ on:
       - main
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout del repositorio
         uses: actions/checkout@v2
 
-      - name: Configurar Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.8'
-
-      - name: Instalar dependencias
-        run: |
-          python -m venv venv
-          source venv/bin/activate
-          pip install -r requirements.txt
-
-      - name: Desplegar en VPS
+      - name: Conectar al VPS y actualizar
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
-          key: ${{ secrets.VPS_SSH_KEY }}
+          password: ${{ secrets.VPS_PASSWORD }}
           script: |
-            cd /ruta/a/tu/proyecto
-            git pull origin main
+            cd /var/www/kiki
+            git pull
             source venv/bin/activate
             pip install -r requirements.txt
             python manage.py migrate
-            sudo systemctl restart myapp.service
+            python manage.py collectstatic --noinput
+            sudo service gunicorn restart
+            sudo service nginx restart

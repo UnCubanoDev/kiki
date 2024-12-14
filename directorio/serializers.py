@@ -68,15 +68,13 @@ class UserLoginSerializer(serializers.Serializer):
     password = serializers.CharField()
 
     def validate(self, data):
-
-        # authenticate recibe las credenciales, si son válidas devuelve el objeto del usuario
+        print(f"Intentando autenticar con: {data['phone']} y {data['password']}")
         user = authenticate(username=data['phone'], password=data['password'])
         if not user:
-            raise serializers.ValidationError(
-                'Las credenciales no son válidas')
+            raise serializers.ValidationError('Las credenciales no son válidas')
 
         if not user.is_active:
-            raise serializers.ValidationError('user deactivated')
+            raise serializers.ValidationError('El usuario está desactivado')
 
         # Guardar el usuario en el contexto para posteriormente en create recuperar el token
         self.context['user'] = user

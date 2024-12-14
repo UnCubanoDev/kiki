@@ -119,21 +119,22 @@ class LoginView(generics.GenericAPIView):
 
     def post(self, request):
         serializer = UserLoginSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user, token = serializer.save()
-        data = {
-            'access_token': token,
-            'user': UserModelSerializer(instance=user).data,
-        }
-        distributors = Distributor.objects.filter(user=user)
-        restaurants = Restaurant.objects.filter(user=user)
-        if len(distributors) > 0:
-            data['distributor'] = DistributorSerializer(
-                instance=distributors[0]).data
-        if len(restaurants) > 0:
-            data['restaurant'] = RestaurantSerializer(
-                instance=restaurants[0]).data
-        return Response(data, status=status.HTTP_201_CREATED)
+        if serializer.is_valid(raise_exception=True):
+            user, token = serializer.save()
+            data = {
+                'access_token': token,
+                'user': UserModelSerializer(instance=user).data,
+            }
+            distributors = Distributor.objects.filter(user=user)
+            restaurants = Restaurant.objects.filter(user=user)
+            if len(distributors) > 0:
+                data['distributor'] = DistributorSerializer(
+                    instance=distributors[0]).data
+            if len(restaurants) > 0:
+                data['restaurant'] = RestaurantSerializer(
+                    instance=restaurants[0]).data
+            return Response(data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ChangePasswordView(generics.GenericAPIView):
 

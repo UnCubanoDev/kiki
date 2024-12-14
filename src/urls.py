@@ -13,11 +13,11 @@ from drf_yasg import openapi
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="Tu API",
+        title="Kiki API",
         default_version='v1',
-        description="Descripción de tu API",
+        description="Descripción de Kiki API",
         terms_of_service="https://www.google.com/policies/terms/",
-        contact=openapi.Contact(email="contact@tuapi.local"),
+        contact=openapi.Contact(email="uncubanodv@gmail.com"),
         license=openapi.License(name="BSD License"),
     ),
     public=True,
