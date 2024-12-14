@@ -25,7 +25,7 @@ class User(AbstractUser):
     )
     image = models.ImageField(
         _("imagen"), upload_to='usuarios/', null=True, blank=True)
-    email = models.EmailField(_("email address"), unique=True)
+    email = models.EmailField(_("email address"), unique=True, blank=True, null=True)
 
     class Meta:
         app_label = 'directorio'
