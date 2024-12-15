@@ -18,6 +18,7 @@ from datetime import time
 
 from solo.models import SingletonModel
 from .helpers import calculate_price
+from .day_of_week import DayOfWeek
 
 phone_validator = RegexValidator(
     ' ^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$ ', _('phone must be in format'))
@@ -136,6 +137,7 @@ class Restaurant(models.Model):
     sunday_closing_time = models.TimeField(_("Sunday Closing Time"), default=time(23, 59))
     time = models.IntegerField(_("time"), default=0)
     business_type = models.ManyToManyField('Category', verbose_name=_("Business Type"))
+    closed_days = models.ManyToManyField(DayOfWeek, verbose_name=_("Closed Days"), blank=True)
 
     @property
     def categories_product(self):
@@ -168,6 +170,26 @@ class Restaurant(models.Model):
     def rate(self, user, rating):
         RestaurantRating.objects.update_or_create(
             user=user, restaurant=self, defaults={'rating': int(rating)})
+
+    def is_open(self):
+        now = timezone.now()
+        current_time = now.time()
+        current_day = now.weekday()  # 0 = Lunes, 6 = Domingo
+
+        # Mapeo de días a métodos de apertura y cierre
+        opening_times = {
+            0: (self.monday_opening_time, self.monday_closing_time),
+            1: (self.tuesday_opening_time, self.tuesday_closing_time),
+            2: (self.wednesday_opening_time, self.wednesday_closing_time),
+            3: (self.thursday_opening_time, self.thursday_closing_time),
+            4: (self.friday_opening_time, self.friday_closing_time),
+            5: (self.saturday_opening_time, self.saturday_closing_time),
+            6: (self.sunday_opening_time, self.sunday_closing_time),
+        }
+
+        opening_time, closing_time = opening_times[current_day]
+
+        return opening_time <= current_time <= closing_time
 
     class Meta:
         verbose_name = _("restaurant")

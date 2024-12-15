@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.urls import path
 
 from .models import (Restaurant, Category, Distributor, DistributorRating,
-                     OrderDetail, ProductRating, Product, Order, RestaurantRating, Configuration, ProductCategory, Metrics)
+                     OrderDetail, ProductRating, Product, Order, RestaurantRating, Configuration, ProductCategory, Metrics, DayOfWeek)
 
 from solo.admin import SingletonModelAdmin
 from django.contrib.admin.views.decorators import staff_member_required
@@ -38,6 +38,7 @@ class RestaurantAdmin(admin.ModelAdmin):
     ]
     list_filter = ['is_active']
     search_fields = ['name', 'user__username', 'phone']
+    filter_horizontal = ('closed_days',)
 
     def display_business_type(self, obj):
         return ", ".join([category.name for category in obj.business_type.all()])

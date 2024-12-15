@@ -153,6 +153,7 @@ class RestaurantSerializer(serializers.ModelSerializer):
     categories_product = serializers.SlugRelatedField(
         slug_field='name', queryset=ProductCategory.objects.all(), many=True)
     time_with_delivery = serializers.SerializerMethodField()
+    is_open = serializers.SerializerMethodField()
 
     def save(self, **kwargs):
         return super().save(**kwargs)
@@ -176,7 +177,8 @@ class RestaurantSerializer(serializers.ModelSerializer):
             'longitude',
             'recommended',
             'funds',
-            'time_with_delivery'
+            'time_with_delivery',
+            'is_open'
         ]
 
     def get_time_with_delivery(self, obj):
@@ -184,6 +186,9 @@ class RestaurantSerializer(serializers.ModelSerializer):
         delivery_time = config.delivery_time if config else 0
         total_time = obj.time + delivery_time
         return total_time
+
+    def get_is_open(self, obj):
+        return obj.is_open()
 
 
 class OrderProductDetailSerializer(serializers.ModelSerializer):
