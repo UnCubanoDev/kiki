@@ -283,3 +283,6 @@ def send_admin_notification(message):
 
 def landing_page(request):
     return render(request, 'landing_page.html')
+
+def privacy_policy(request):
+    return render(request, 'privacy_policy.html')

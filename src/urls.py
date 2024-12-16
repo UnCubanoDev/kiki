@@ -5,7 +5,7 @@ from django.conf import settings
 from rest_framework.routers import DefaultRouter
 from django.views.generic.base import RedirectView
 from api.admin_views import DashboardView
-from directorio.views import landing_page
+from directorio.views import landing_page, privacy_policy
 
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
@@ -40,6 +40,7 @@ urlpatterns = [
     re_path(r'^redoc/$', schema_view.with_ui('redoc',
             cache_timeout=0), name='schema-redoc'),
     path('', landing_page, name='landing_page'),
+    path('privacidad', privacy_policy, name='privacy_policy'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

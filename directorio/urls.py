@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import PhoneResetPasswordRequestToken, UserViewSet, ChangePasswordView, SignupView, LoginView, AddressViewSet, UserInfoView, activate
+from .views import PhoneResetPasswordRequestToken, UserViewSet, ChangePasswordView, SignupView, LoginView, AddressViewSet, UserInfoView, activate, privacy_policy
 from rest_framework import routers
 from django_rest_passwordreset.views import ResetPasswordConfirmViewSet, ResetPasswordValidateTokenViewSet
 
@@ -18,4 +18,5 @@ urlpatterns = [
     path('signup/', SignupView.as_view(), name='auth_signup'),
     path('change_password/', ChangePasswordView.as_view(), name='auth_chpass'),
     path('activate/<uidb64>/<token>/', activate, name='activate'),
+    path('privacidad/', privacy_policy, name='privacy_policy'),
 ]
