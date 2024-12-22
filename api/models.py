@@ -99,7 +99,7 @@ class ProductCategory(models.Model):
         verbose_name_plural = _("product categories")
 
     def __str__(self):
-        return self.name
+        return f"{self.name} - {self.business.name}"
 
     def get_absolute_url(self):
         return reverse("productcategory_detail", kwargs={"pk": self.pk})

@@ -156,13 +156,14 @@ class ProductAdmin(admin.ModelAdmin):
     ]
     list_filter = ['is_active']
 
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "category":
-            if request.GET.get('restaurant'):
-                kwargs["queryset"] = ProductCategory.objects.filter(business_id=request.GET.get('restaurant'))
-            else:
-                kwargs["queryset"] = ProductCategory.objects.none()
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+    # def formfield_for_foreignkey(self, db_field, request, **kwargs):
+    #     if db_field.name == "category":
+    #         restaurant_id = request.GET.get('restaurant_id')
+    #         if restaurant_id:
+    #             kwargs["queryset"] = ProductCategory.objects.filter(business_id=restaurant_id)
+    #         else:
+    #             kwargs["queryset"] = ProductCategory.objects.none()
+    #     return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 @admin.register(RestaurantRating)
