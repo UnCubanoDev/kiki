@@ -271,8 +271,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'delivery_total_distance',
             'details',
             'total',
-            'note',
-            'created_at'
+            'note'
         ]
         read_only_fields = [
             'id',
