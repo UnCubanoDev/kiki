@@ -108,8 +108,8 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def get_price(self, obj):
         request = self.context.get('request')
-        if not request or not request.user.is_authenticated:
-            return obj.price
+        # if not request or not request.user.is_authenticated:
+        #     return obj.price
             
         return math.ceil(calculate_price(
             base_price=obj.price,
@@ -126,14 +126,17 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def get_final_price(self, obj):
         request = self.context.get('request')
-        if not request or not request.user.is_authenticated:
-            return obj.price + obj.thermopack_price
-            
-        return math.ceil(calculate_price(
-            base_price=obj.price + obj.thermopack_price,
+        # if not request or not request.user.is_authenticated:
+        #     return obj.price + obj.thermopack_price
+        
+        # Calcular el precio final incluyendo el impuesto del negocio
+        base_price = obj.price + obj.thermopack_price
+        final_price = calculate_price(
+            base_price=base_price,
             restaurant_tax=obj.restaurant.tax,
             user=request.user
-        ))  # Redondear hacia arriba
+        )
+        return math.ceil(final_price)  # Redondear hacia arriba
 
 
 class ProductCategorySerializer(serializers.ModelSerializer):

@@ -15,6 +15,7 @@ import requests
 from requests.exceptions import RequestException
 from django.utils import timezone
 from datetime import time
+from decimal import Decimal
 
 from solo.models import SingletonModel
 from .helpers import calculate_price
@@ -371,6 +372,7 @@ class Order(models.Model):
     distributor = models.ForeignKey("api.Distributor", verbose_name=_(
         "distributor"), on_delete=models.DO_NOTHING, null=True, blank=True)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     date = models.DateTimeField(auto_now_add=True)
     time = models.TimeField(_("time"), auto_now=True)
     delivery_address = models.ForeignKey(
@@ -522,10 +524,10 @@ class OrderDetail(models.Model):
         super().save(*args, **kwargs)
 
     def get_final_price(self):
-        base_price = float(self.product.price) * (1 + (float(self.tax_rate or 0) / 100))
+        base_price = Decimal(self.product.price) * (1 + (Decimal(self.tax_rate or 0) / Decimal(100)))
         if self.order.user.phone.startswith('+53'):
             return math.ceil(base_price * self.quantity)
-        return math.ceil((base_price / float(self.exchange_rate or 1)) * self.quantity)
+        return math.ceil((base_price / Decimal(self.exchange_rate or 1)) * self.quantity)
 
     class Meta:
         verbose_name = _("order detail")
